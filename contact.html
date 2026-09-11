@@ -7,13 +7,16 @@
   <title>联系 · Aster</title>
   <meta name="description" content="联系 Aster：邮箱或 QQ。">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='6' fill='%232F55C9'/%3E%3Cellipse cx='16' cy='16' rx='13' ry='5' fill='none' stroke='%232F55C9' stroke-width='1.6' opacity='.55' transform='rotate(-24 16 16)'/%3E%3C/svg%3E">
-  <script>try{var t=localStorage.getItem("aster-theme");if(!t&&matchMedia("(prefers-color-scheme: dark)").matches)t="dark";if(t)document.documentElement.dataset.theme=t;document.documentElement.classList.add("js");if(!sessionStorage.getItem("aster-booted")){var rf=document.referrer;var same=false;try{same=!!rf&&new URL(rf).origin===location.origin}catch(e2){}if(!same&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.add("booting")}}if(t==="green"){var pc=document.createElement("link");pc.rel="preconnect";pc.href="https://www.loliapi.com";document.head.appendChild(pc);var kb=JSON.parse(sessionStorage.getItem("komorebi-bg")||"null");if(kb&&kb.url){document.documentElement.style.setProperty("--wallpaper",'url("'+kb.url+'")');new Image().src=kb.url}}}catch(e){}</script>
+  <script>try{var t=localStorage.getItem("aster-theme");if(!t&&matchMedia("(prefers-color-scheme: dark)").matches)t="dark";if(t)document.documentElement.dataset.theme=t;document.documentElement.classList.add("js");var rf2=document.referrer,so=false;try{so=!!rf2&&new URL(rf2).origin===location.origin}catch(e3){}if(so){document.documentElement.classList.add("vt-nav");if(window.CSS&&CSS.supports("view-transition-name","x"))document.documentElement.classList.add("vt-native")}if(!sessionStorage.getItem("aster-booted")){var rf=document.referrer;var same=false;try{same=!!rf&&new URL(rf).origin===location.origin}catch(e2){}if(!same&&!matchMedia("(prefers-reduced-motion: reduce)").matches){document.documentElement.classList.add("booting")}}if(t==="green"){var pc=document.createElement("link");pc.rel="preconnect";pc.href="https://www.loliapi.com";document.head.appendChild(pc);var kb=JSON.parse(sessionStorage.getItem("komorebi-bg")||"null");if(kb&&kb.url){document.documentElement.style.setProperty("--wallpaper",'url("'+kb.url+'")');new Image().src=kb.url}}}catch(e){}</script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-regular.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-bold.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=47">
+  <link rel="stylesheet" href="assets/css/style.css?v=48">
+  <!-- defer + blocking=render：首帧一定带着渲染好的内容，翻页快照不会是空页 -->
+  <script defer blocking="render" src="assets/js/data.js?v=16"></script>
+  <script defer blocking="render" src="assets/js/main.js?v=42"></script>
 </head>
 <body data-page="contact">
   <div class="boot" id="boot" aria-hidden="true">
@@ -91,7 +94,5 @@
   </button>
   <div class="toast" id="toast" role="status"></div>
 
-  <script src="assets/js/data.js?v=16"></script>
-  <script src="assets/js/main.js?v=41"></script>
 </body>
 </html>

@@ -263,7 +263,14 @@ svg { display: block; }
 .site-head {
   position: sticky; top: 0; z-index: 100;
   border-bottom: 1px solid var(--line-soft);
+  view-transition-name: site-head;
 }
+html.vt-flat .site-head::before {
+  background: var(--paper);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  transition: none;
+}
+html.vt-flat .site-head { border-bottom-color: transparent; }
 /* 毛玻璃背景放在伪元素上：backdrop-filter 若挂在 .site-head 本体，
    会成为内部 fixed 元素（移动端全屏菜单）的包含块，把菜单压扁 */
 .site-head::before {
@@ -271,7 +278,7 @@ svg { display: block; }
   background: color-mix(in srgb, var(--paper) 78%, transparent);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
   backdrop-filter: blur(16px) saturate(1.4);
-  transition: background .3s ease;
+  transition: background .3s ease, backdrop-filter .3s ease, -webkit-backdrop-filter .3s ease;
 }
 .head-inner { height: 60px; display: flex; align-items: center; gap: 20px; }
 
@@ -303,6 +310,7 @@ svg { display: block; }
 }
 .menu a:hover { color: var(--ink); }
 .menu a:hover::after, .menu a.active::after { transform: scaleX(1); }
+.menu a.active::after { view-transition-name: nav-ink; }
 .menu a.active { color: var(--ink); }
 
 .head-actions { display: flex; align-items: center; gap: 8px; }
@@ -398,7 +406,9 @@ svg { display: block; }
 .dot-live { width: 6px; height: 6px; border-radius: 50%; background: var(--panel-ok); animation: pulse 2s ease-out infinite; }
 #motd {
   margin: 0; padding: 15px 18px 17px;
-  min-height: 186px;
+  min-height: 186px; max-height: 320px; overflow-y: auto;
+  overscroll-behavior: contain; scrollbar-width: thin;
+  cursor: text;
   font-family: var(--mono); font-size: 13.8px; line-height: 1.95;
   white-space: pre-wrap; word-break: normal; overflow-wrap: break-word;
   color: var(--term-ink);
@@ -479,6 +489,22 @@ svg { display: block; }
   background: var(--term-ok); vertical-align: -2px;
   animation: blink 1.1s steps(1) infinite;
 }
+.motd-frame { position: relative; }
+.cli-input {
+  position: absolute; left: 0; top: 0; width: 1px; height: 1px;
+  opacity: 0; border: 0; padding: 0; margin: 0;
+  pointer-events: none; font-size: 16px;   /* 16px：iOS 聚焦不缩放 */
+}
+.cli-typed { white-space: pre-wrap; }
+.cli-line { display: inline; }
+.cli-hint { color: var(--term-dim); opacity: .7; font-style: italic; }
+.cli-err { color: #F87171; }
+.cli-out { animation: cli-out .28s var(--ease) both; display: inline; }
+@keyframes cli-out { from { opacity: 0; transform: translateX(-4px); } }
+#motd a { color: var(--term-cyan); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--term-cyan) 40%, transparent); text-underline-offset: 3px; }
+#motd a:hover { text-decoration-color: var(--term-cyan); }
+.motd-frame:focus-within .caret { animation-duration: .8s; }
+.motd-frame:focus-within { border-color: color-mix(in srgb, var(--term-ok) 35%, var(--term-line)); }
 @keyframes blink { 50% { opacity: 0; } }
 
 /* Hero 双栏：左玻璃卡（自我介绍），右亚克力终端 */
@@ -1372,7 +1398,6 @@ svg { display: block; }
   position: fixed; top: 0; left: 0; z-index: 200; height: 2px; width: 100%;
   background: linear-gradient(90deg, var(--accent), var(--sakura));
   transform: scaleX(var(--p, 0)); transform-origin: left;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 .toast {
   position: fixed; bottom: 32px; left: 50%; z-index: 300;
@@ -1457,17 +1482,40 @@ main, .site-foot { position: relative; z-index: 1; }
 }
 
 ::view-transition-old(root) {
-  animation: vt-fade-out .22s ease-in both;
+  animation: vt-fade-out .24s ease-in both;
 }
 ::view-transition-new(root) {
-  animation: vt-fade-in .36s var(--ease) both;
+  animation: vt-fade-in .42s var(--ease) both;
 }
 @keyframes vt-fade-out {
-  to { opacity: 0; }
+  to { opacity: 0; transform: translateY(-6px); }
 }
 @keyframes vt-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(10px); }
 }
+/* 页头：不淡不动，稳稳压住（old 藏起、new 静止；快照已用平面底保证一致） */
+::view-transition-group(site-head) { animation: none; }
+::view-transition-old(site-head) { animation: none; opacity: 0; }
+::view-transition-new(site-head) { animation: none; }
+::view-transition-image-pair(site-head) { isolation: auto; }
+/* 导航下划线滑行 */
+::view-transition-group(nav-ink) { animation-duration: .45s; animation-timing-function: var(--ease); }
+::view-transition-old(nav-ink) { animation: none; opacity: 0; }
+::view-transition-new(nav-ink) { animation: none; }
+/* 卡片 → 文章：被点的卡片放大变形成阅读画卷，标题随之长大 */
+body[data-page="post"] .reading-glass { view-transition-name: post-card; }
+body[data-page="post"] .article-h1 { view-transition-name: post-title; }
+::view-transition-group(post-card),
+::view-transition-group(post-title) { animation-duration: .58s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
+::view-transition-old(post-card), ::view-transition-new(post-card) {
+  animation-duration: .58s;
+  height: 100%; width: 100%; object-fit: cover; object-position: top left;
+  overflow: clip; border-radius: 16px;
+}
+::view-transition-old(post-title), ::view-transition-new(post-title) {
+  animation-duration: .58s; height: 100%; object-fit: contain; object-position: left top;
+}
+::view-transition-image-pair(post-card) { border-radius: 16px; overflow: clip; }
 
 /* 旧浏览器兜底：JS 交棒离场 */
 html.leaving main,
@@ -1478,7 +1526,7 @@ html.leaving .site-foot {
   transition: opacity .2s ease-in, transform .2s ease-in;
 }
 /* 原生 VT 负责整页交接时：关掉 .rv 入场，避免「新页先空再弹」二次闪 */
-.js.vt-native .rv,
+.js.vt-native .rv:not(.rv-late),
 .js.vt-native .fall-text .ch {
   animation: none !important;
 }
@@ -1525,6 +1573,26 @@ html.theme-anim *::before, html.theme-anim *::after,
 html.theme-anim *:not(svg):not(svg *) {
   transition: background-color .3s ease, color .3s ease, border-color .3s ease !important;
 }
+
+/* 卡片追光：一束柔光跟着指针在玻璃面上游走（JS 只改 --mx/--my） */
+.spot-host { position: relative; isolation: isolate; }
+.spot {
+  position: absolute; inset: 0; border-radius: inherit; z-index: -1;
+  pointer-events: none; opacity: 0;
+  transition: opacity .4s ease;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--glow-c, var(--accent)) 13%, transparent), transparent 70%);
+}
+.spot-host:hover .spot { opacity: 1; }
+@media (hover: none) { .spot { display: none; } }
+
+/* 按压反馈：点下去微缩一下，松手弹回 */
+.post-row:active, .blog-card:active, .proj-card:active, .now-list li:active,
+.hero-socials a:active, .theme-btn:active, .to-top:active, .proj-link:active, .copy-btn:active {
+  transform: scale(.975);
+  transition-duration: .1s;
+}
+.tilt:active { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(.985); }
 
 /* 站徽：悬停时轨道转半圈，像一颗被拨动的小行星 */
 .logo-mark ellipse { transform-origin: 16px 16px; transition: transform .6s var(--ease); }
@@ -1632,7 +1700,7 @@ html.booting body { overflow: hidden; }
   .menu-btn { display: grid; }
 
   .home-top { padding-top: 44px; }
-  #motd { font-size: 11.5px; padding: 13px 15px; min-height: 150px; }
+  #motd { font-size: 11.5px; padding: 13px 15px; min-height: 150px; max-height: 260px; }
   .sect { margin-top: 64px; }
   .blog-grid { grid-template-columns: 1fr; }
 
@@ -1675,6 +1743,8 @@ html.booting body { overflow: hidden; }
   .js .rv, .fall-text .ch { animation: none; opacity: 1; transform: none; }
   .fall-text .ch, .tilt { transition: none; }
   .skeleton .sk, .dot-live, .u-dot, .halo, .bg-komorebi.ready { animation: none; }
+  .spot { display: none; }
+  .site-head, .menu a.active::after, body[data-page="post"] .reading-glass, body[data-page="post"] .article-h1 { view-transition-name: none; }
   .boot { display: none !important; }
   *, *::before, *::after {
     animation-duration: .01ms !important;

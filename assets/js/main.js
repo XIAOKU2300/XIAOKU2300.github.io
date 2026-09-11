@@ -132,18 +132,7 @@
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", t.bar);
   }
 
-  /* 站内翻页到达：入场动画走快节奏（referrer 同源判定）；
-     直接输网址/首次进站保留完整演出。离场动效见 initPageTransitions */
-  try {
-    const ref = document.referrer && new URL(document.referrer);
-    if (ref && ref.origin === location.origin) {
-      document.documentElement.classList.add("vt-nav");
-      // 原生跨文档 VT 可用时：关掉 .rv 入场，避免与整页淡化叠成二次闪
-      if (typeof CSS !== "undefined" && CSS.supports("view-transition-name", "site-head")) {
-        document.documentElement.classList.add("vt-native");
-      }
-    }
-  } catch {}
+  /* 站内翻页判定（vt-nav / vt-native）在 <head> 内联脚本里做，首帧前就绪 */
 
   /* ── 翻页动效：支持跨文档 View Transition 时交给浏览器柔和交接；
      否则 JS 交棒（内容层上浮淡出）再导航。点击处可炸开主题花瓣。
@@ -168,14 +157,80 @@
       burstAt(e.clientX || innerWidth / 2, e.clientY || 60, document.documentElement.dataset.theme || "light");
 
       // 原生跨文档视图过渡：不拦截，让浏览器做页头连续 + 正文淡入淡出
-      if (supportsVT) return;
+      if (supportsVT) {
+        // 点的是文章卡片：命名为共享元素，浏览器把它变形成文章页的阅读画卷
+        const card = a.closest(".blog-card, .post-row");
+        if (card && /post\.html/.test(url.pathname)) nameCard(card);
+        return;
+      }
 
       e.preventDefault();
       document.documentElement.classList.add("leaving");
       setTimeout(() => { location.href = a.href; }, 200);
     });
-    addEventListener("pageshow", () => document.documentElement.classList.remove("leaving"));
+    addEventListener("pageshow", (e) => {
+      document.documentElement.classList.remove("leaving");
+      if (!e.persisted) return;
+      $$('[style*="view-transition-name"]').forEach((el) => {   // bfcache 回来：清掉临时命名
+        el.style.viewTransitionName = "";
+        $$(".blog-title, .pr-title", el).forEach((t) => { t.style.viewTransitionName = ""; });
+      });
+    });
+
+    // 过渡瞬间页头改用平面底：两页快照像素一致，毛玻璃不再闪色差
+    const root = document.documentElement;
+    addEventListener("pageswap", (e) => { if (e.viewTransition) root.classList.add("vt-flat"); });
+    addEventListener("pagereveal", (e) => {
+      if (!e.viewTransition) return;
+      root.classList.add("vt-flat");
+      const unflat = () => root.classList.remove("vt-flat");
+      e.viewTransition.finished.finally(unflat);
+      setTimeout(unflat, 1200);   // 兜底：过渡被跳过也不能让页头一直是平面底
+    });
   }
+
+  /* 共享元素命名：卡片 → post-card，标题 → post-title */
+  function nameCard(card) {
+    card.style.viewTransitionName = "post-card";
+    const t = card.querySelector(".blog-title, .pr-title");
+    if (t) t.style.viewTransitionName = "post-title";
+  }
+  /* 从文章页返回列表：把对应卡片命名，让画卷缩回卡片里 */
+  function nameReturnTarget() {
+    try {
+      const ref = new URL(document.referrer);
+      if (ref.origin !== location.origin || !/post\.html/.test(ref.pathname)) return;
+      const slug = ref.searchParams.get("slug");
+      if (!slug) return;
+      const card = $$(".blog-card, .post-row").find((a) => new URL(a.href).searchParams.get("slug") === slug);
+      if (card) nameCard(card);
+    } catch {}
+  }
+
+  /* ── 卡片追光：一束柔光跟着指针游走（单个委托监听，rAF 节流）── */
+  const SPOT_SEL = ".card, .blog-card, .proj-card, .reading-glass, .fact, .copy-rows, .post-toc, .doc-toc, .motd-frame";
+  function initSpots() {
+    if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    $$(SPOT_SEL).forEach((c) => {
+      if (c.classList.contains("spot-host")) return;
+      c.classList.add("spot-host");
+      const i = document.createElement("i");
+      i.className = "spot";
+      i.setAttribute("aria-hidden", "true");
+      c.appendChild(i);
+    });
+  }
+  let spotRaf = 0;
+  document.addEventListener("pointermove", (e) => {
+    const host = e.target.closest?.(".spot-host");
+    if (!host || spotRaf) return;
+    spotRaf = requestAnimationFrame(() => {
+      spotRaf = 0;
+      const r = host.getBoundingClientRect();
+      host.style.setProperty("--mx", (e.clientX - r.left).toFixed(0) + "px");
+      host.style.setProperty("--my", (e.clientY - r.top).toFixed(0) + "px");
+    });
+  }, { passive: true });
 
   /* ── 看板娘：左下角的 Live2D 少女（shizuku）。桌面端才出，
      CDN 挂了/无 WebGL 就记入 sessionStorage 安静走开，绝不影响站点 ── */
@@ -372,6 +427,10 @@
     }
     const caret = document.createElement("span");
     caret.className = "caret";
+    let skip = false;   // 点终端或敲任意键：剩下的瞬间打完，直接进 shell
+    const onSkip = () => { skip = true; };
+    el.addEventListener("click", onSkip, { once: true });
+    addEventListener("keydown", onSkip, { once: true });
     for (const line of SITE.motd) {
       while (window.__pauseTyping) await sleep(120);   // 主题转场期间暂停，防止揭幕跳字
       if (line.dot) {
@@ -385,15 +444,152 @@
       el.appendChild(caret);
       for (const ch of line.t) {
         span.textContent += ch;
-        await sleep(line.c === "cmd" ? 26 : 12);
+        if (!skip) await sleep(line.c === "cmd" ? 22 : 10);
       }
       el.removeChild(caret);
       el.appendChild(document.createTextNode("\n"));
-      await sleep(line.c === "cmd" ? 220 : 380);
+      if (!skip) await sleep(line.c === "cmd" ? 180 : 320);
     }
+    el.removeEventListener("click", onSkip);
+    removeEventListener("keydown", onSkip);
     el.appendChild(caret);
     startTelemetry();
     initUptime();
+    initCli(el, caret);
+  }
+
+  /* ── 真·终端：MOTD 打完后接管为可输入的 shell。点终端或按 / 聚焦，
+     help 看命令。cd/cat 会真的翻页，theme 真的换肤。 ── */
+  function initCli(el, caret) {
+    if (el.dataset.cli) return;
+    el.dataset.cli = "1";
+    const frame = el.closest(".motd-frame");
+    const input = document.createElement("input");
+    input.className = "cli-input";
+    input.setAttribute("aria-label", "终端输入");
+    input.autocomplete = "off"; input.spellcheck = false; input.autocapitalize = "off";
+    frame.appendChild(input);
+
+    const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    const hint = document.createElement("span");
+    hint.className = "cli-hint cli-out";
+    hint.textContent = "# 这是个能用的终端：点这里，输入 help 试试\n";
+    el.appendChild(hint);
+    caret.remove();
+
+    let line, typed;
+    const prompt = () => {
+      line = document.createElement("span");
+      line.className = "cli-line";
+      line.innerHTML = `<span class="t-cmd">$ </span><span class="cli-typed"></span>`;
+      typed = line.querySelector(".cli-typed");
+      line.appendChild(caret);
+      el.appendChild(line);
+      el.scrollTop = el.scrollHeight;
+    };
+    const out = (html, cls = "t-out") => {
+      const o = document.createElement("span");
+      o.className = `${cls} cli-out`;
+      o.innerHTML = html + "\n";
+      el.appendChild(o);
+      el.scrollTop = el.scrollHeight;
+    };
+    const PAGES = { home: "index.html", index: "index.html", blog: "blog.html", posts: "blog.html", projects: "projects.html", about: "about.html", contact: "contact.html", gov: "gov.html", "~": "index.html" };
+    const go = (href) => { out(`→ ${href}`, "t-ok"); setTimeout(() => { location.href = href; }, 240); };
+    const posts = () => sortedPosts();
+    const CMDS = {
+      help: () => out([
+        "help            这份清单",
+        "ls [posts]      列出页面 / 文章",
+        "cd &lt;page&gt;       跳转：home blog projects about contact gov",
+        "cat &lt;n|slug&gt;    打开第 n 篇文章",
+        "theme &lt;name&gt;    light / dark / pink / green",
+        "whoami · uptime · date · neofetch · echo · clear",
+        "petals off|on   花瓣开关 · musume 看板娘开关",
+      ].join("\n")),
+      ls: (a) => {
+        if (a[0] === "posts" || a[0] === "blog") return out(posts().map((p, i) => `${String(i + 1).padStart(2)}  <a href="post.html?slug=${p.slug}">${esc(p.title)}</a>  <span class="cli-hint">${p.date}</span>`).join("\n"));
+        out("index.html  blog.html  projects.html  about.html  contact.html  gov.html");
+      },
+      cd: (a) => { const h = PAGES[(a[0] || "~").replace(/\.html$/, "").replace(/^\//, "")]; h ? go(h) : out(`cd: ${esc(a[0])}: 没有这个目录`, "cli-err"); },
+      open: (a) => CMDS.cd(a),
+      cat: (a) => {
+        const k = a[0] || "";
+        const p = /^\d+$/.test(k) ? posts()[+k - 1] : posts().find((x) => x.slug === k);
+        p ? go(`post.html?slug=${p.slug}`) : out(`cat: ${esc(k)}: 没有这篇（ls posts 看看）`, "cli-err");
+      },
+      theme: (a) => {
+        const id = (a[0] || "").toLowerCase();
+        if (!THEMES.some((t) => t.id === id)) return out("theme: light / dark / pink / green", "cli-err");
+        const btn = $("#theme-btn");
+        let guard = 0;
+        const step = () => { if ((document.documentElement.dataset.theme || "light") !== id && guard++ < 4) { btn.click(); setTimeout(step, 700); } };
+        step();
+      },
+      whoami: () => out(`${SITE.profile.name} · ${SITE.profile.grade} · ${SITE.profile.location}\n${esc(SITE.profile.status)}`),
+      uptime: () => {
+        const sec = Math.max(0, Math.floor((Date.now() - Date.parse(SITE.profile.uptimeSince || 0)) / 1000));
+        out(`up ${Math.floor(sec / 86400)} days, ${Math.floor(sec / 3600) % 24}:${String(Math.floor(sec / 60) % 60).padStart(2, "0")},  load average: 作业 3.0, 折腾 2.7, 睡眠 0.5`);
+      },
+      date: () => out(new Date().toLocaleString("zh-CN", { hour12: false })),
+      echo: (a) => out(esc(a.join(" "))),
+      clear: () => { el.innerHTML = ""; },
+      neofetch: () => out([
+        `<span class="t-ok">   ,-.   </span>  <b>aster</b>@<b>homelab</b>`,
+        `<span class="t-ok">  ( o )  </span>  ─────────────────`,
+        `<span class="t-ok">   \`-'   </span>  OS: fnOS (Linux) · 手写 HTML/CSS/JS`,
+        `           Theme: ${document.documentElement.dataset.theme || "light"} · Font: LXGW WenKai`,
+        `           Bot: AstrBot · 鸣潮查分 · Live2D: shizuku`,
+        `           Petals: ${ambientPetals.length} · Uptime: since ${(SITE.profile.uptimeSince || "").slice(0, 10)}`,
+      ].join("\n")),
+      petals: (a) => { const c = $(".petals"); if (!c) return; c.style.display = a[0] === "off" ? "none" : ""; out(`petals ${a[0] === "off" ? "off" : "on"}`, "t-ok"); },
+      musume: () => { const w = $("#live2d-widget"); if (!w) return out("看板娘还没来（手机端不出）", "cli-err"); w.style.display = w.style.display === "none" ? "" : "none"; out("ok", "t-ok"); },
+      sudo: () => { out(`${SITE.profile.name} is not in the sudoers file. This incident will be reported.`, "cli-err"); dropX(innerWidth / 2, innerHeight / 2, frame); },
+      rm: (a) => out(a.join(" ").includes("-rf") ? "别闹。" : "rm: 这里没什么好删的", "cli-err"),
+      hi: () => out("你好呀～ 欢迎来 Aster 的小站 ♪", "t-ok"),
+      hello: () => CMDS.hi(), exit: () => out("logout\n（其实关不掉，这就是个网页）"), vim: () => out(":q! 都不会你还想用 vim？", "cli-err"),
+    };
+    const history = []; let hi = 0;
+    const run = (raw) => {
+      const cmd = raw.trim();
+      out(`$ ${esc(cmd)}`, "t-cmd");
+      if (cmd) {
+        history.push(cmd); hi = history.length;
+        const [name, ...args] = cmd.split(/\s+/);
+        const fn = CMDS[name.toLowerCase()];
+        fn ? fn(args) : out(`bash: ${esc(name)}: command not found（试试 help）`, "cli-err");
+      }
+      prompt();
+    };
+    input.addEventListener("input", () => { typed.textContent = input.value; el.scrollTop = el.scrollHeight; });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { line.remove(); run(input.value); input.value = ""; }
+      else if (e.key === "ArrowUp") { if (hi > 0) { input.value = history[--hi]; typed.textContent = input.value; } e.preventDefault(); }
+      else if (e.key === "ArrowDown") { hi = Math.min(hi + 1, history.length); input.value = history[hi] || ""; typed.textContent = input.value; e.preventDefault(); }
+    });
+    frame.addEventListener("click", (e) => { if (!e.target.closest("a")) input.focus({ preventScroll: true }); });
+    addEventListener("keydown", (e) => {
+      if (e.key === "/" && !e.metaKey && !e.ctrlKey && document.activeElement !== input && !/^(input|textarea)$/i.test(e.target.tagName)) {
+        e.preventDefault(); input.focus({ preventScroll: true });
+        frame.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    });
+    prompt();
+  }
+
+  /* ── 在线状态：挂机一分钟没动，状态胶囊换句话，动一动就回来 ── */
+  function initIdle() {
+    const st = $(".presence [data-bind=\"status\"]");
+    if (!st) return;
+    const orig = st.textContent;
+    let t;
+    const arm = () => {
+      clearTimeout(t);
+      if (st.textContent !== orig) st.textContent = orig;
+      t = setTimeout(() => { st.textContent = "挂机中…（动一动？）"; }, 60000);
+    };
+    ["pointermove", "keydown", "scroll", "touchstart"].forEach((ev) => addEventListener(ev, arm, { passive: true }));
+    arm();
   }
 
   /* 遥测行：延迟数值抖动 + 随机生活切片轮播，面板像有人住在里面 */
@@ -645,9 +841,9 @@
       const body = $(".body", root);
       body.innerHTML = p.body;
       glass.insertAdjacentHTML("beforeend", `
-        <div class="tags rv" style="--d:190ms">${p.tags.map((t) => `<span>#${t}</span>`).join("")}</div>
-        <p class="end-mark rv" style="--d:210ms">（完）</p>
-        ${prev || next ? `<div class="post-nav rv" style="--d:230ms">
+        <div class="tags rv rv-late" style="--d:190ms">${p.tags.map((t) => `<span>#${t}</span>`).join("")}</div>
+        <p class="end-mark rv rv-late" style="--d:210ms">（完）</p>
+        ${prev || next ? `<div class="post-nav rv rv-late" style="--d:230ms">
           ${prev ? `<a href="post.html?slug=${prev.slug}"><span class="pn-label">上一篇</span><span class="pn-title">${prev.title}</span></a>` : "<span></span>"}
           ${next ? `<a class="next" href="post.html?slug=${next.slug}"><span class="pn-label">下一篇</span><span class="pn-title">${next.title}</span></a>` : ""}
         </div>` : ""}`);
@@ -680,7 +876,7 @@
       // 也省掉成百上千个过渡节点带来的滚动卡顿
       if (body) {
         [...body.children].forEach((el, i) => {
-          el.classList.add("rv");
+          el.classList.add("rv", "rv-late");
           el.style.setProperty("--d", Math.min(i * 40, 280) + "ms");
         });
       }
@@ -1089,31 +1285,6 @@
       .catch(() => show("https://www.loliapi.com/acg/"));   // 接口不通：仅本页随机
   }
 
-  /* ── 页面切换进度条：点站内链接立刻走进度，落地收满 ────────── */
-  function initNavProgress() {
-    const bar = $(".progress");
-    if (!bar) return;
-    document.addEventListener("click", (e) => {
-      const a = e.target.closest("a[href]");
-      if (!a || e.defaultPrevented || a.target === "_blank") return;
-      try { if (new URL(a.href, location.href).origin !== location.origin) return; } catch { return; }
-      if (!/\.html($|\?)/.test(a.getAttribute("href"))) return;
-      bar.dataset.nav = "1";
-      bar.style.transition = "transform .3s ease";
-      bar.style.setProperty("--p", ".72");
-    }, true);
-    addEventListener("pageshow", () => {
-      bar.dataset.nav = "1";
-      bar.style.transition = "transform .25s ease";
-      bar.style.setProperty("--p", "1");
-      setTimeout(() => {
-        bar.style.transition = "opacity .2s ease";
-        bar.style.opacity = "0";
-        setTimeout(() => { delete bar.dataset.nav; bar.style.transition = "none"; bar.style.setProperty("--p", "0"); bar.style.opacity = ""; }, 200);
-      }, 260);
-    });
-  }
-
   /* ── 开机动画：冷启动才出（判定在 <head> 内联脚本里加 html.booting）。
      终端式滚三行日志，等 load / 字体就绪且至少亮 1s 后揭幕；
      最长 2.4s 强制放行，绝不卡住内容。 ── */
@@ -1240,8 +1411,9 @@
     } catch {}
   }
 
-  /* ── 启动 ───────────────────────────────────────────────── */
-  document.addEventListener("DOMContentLoaded", () => {
+  /* ── 启动：脚本挂在 body 末尾，DOM 已齐，直接跑（不等 DOMContentLoaded，
+     配合 <link rel="expect" blocking="render"> 让首帧就带内容，翻页快照不空） ── */
+  const boot = () => {
     const booting = initBoot();
     initTheme();
     hydrate();
@@ -1250,9 +1422,11 @@
 
     if (page === "home") {
       renderHome();
+      nameReturnTarget();
+      initIdle();
       booting.then(() => typeMotd());   // 打字机等幕布揭开再开敲
     }
-    if (page === "blog") initBlogPage();
+    if (page === "blog") { initBlogPage(); nameReturnTarget(); }
     if (page === "post") initPostPage();
     if (page === "projects") renderProjects();
     if (page === "about") renderAbout();
@@ -1274,18 +1448,23 @@
 
     initPetals();
     if ((document.documentElement.dataset.theme || "light") === "green") initKomorebi();
-    initNavProgress();
     initPageTransitions();
     initClickFx();
     initTilt();
     initToys();
     addCopyButtons();
-    // 全文页等异步渲染的代码块：落地后补按钮
+    initSpots();
+    // 异步渲染的内容（正文、筛选列表、全文页）落地后补挂追光与复制按钮
+    let moRaf = 0;
     new MutationObserver((ms) => {
-      if (ms.some((m) => [...m.addedNodes].some((n) => n.nodeType === 1 && (n.tagName === "PRE" || n.querySelector?.("pre"))))) addCopyButtons();
+      if (moRaf) return;
+      if (!ms.some((m) => [...m.addedNodes].some((n) => n.nodeType === 1 && !n.matches(".spot, .pre-copy, .click-ring, .nope-x, .cli-out, .cli-line")))) return;
+      moRaf = requestAnimationFrame(() => { moRaf = 0; addCopyButtons(); initSpots(); });
     }).observe(document.body, { childList: true, subtree: true });
     // 看板娘让路：等主线程空闲再加载（内容/字体/壁纸优先）
     (window.requestIdleCallback || ((f) => setTimeout(f, 1200)))(() => initMusume());
     initEnergize();
-  });
+  };
+  if (document.readyState === "loading" && !document.body) document.addEventListener("DOMContentLoaded", boot);
+  else boot();
 })();
