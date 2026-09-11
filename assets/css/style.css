@@ -199,6 +199,8 @@ body {
   color: var(--ink);
   background: var(--paper);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   transition: background .3s ease, color .3s ease;
 }
 
@@ -313,6 +315,7 @@ svg { display: block; }
 .theme-btn:hover, .menu-btn:hover { color: var(--ink); background: var(--accent-soft); }
 .theme-btn svg, .menu-btn svg { width: 16px; height: 16px; transition: transform .35s var(--ease); }
 .theme-btn:hover svg { transform: rotate(40deg) scale(1.08); }
+.theme-btn:active svg { transform: rotate(60deg) scale(.9); transition-duration: .12s; }
 .theme-btn .i-sun { display: none; }
 [data-theme="dark"] .theme-btn .i-sun { display: block; }
 [data-theme="dark"] .theme-btn .i-moon { display: none; }
@@ -488,7 +491,7 @@ svg { display: block; }
 .hero-card::before {
   content: "ASTER // ARCHIVE";
   position: absolute; top: -40px; right: -14px; z-index: 0;
-  font-family: var(--mono); font-style: italic; font-weight: 700;
+  font-family: var(--mono); font-style: italic; font-weight: 500;
   font-size: clamp(3.2rem, 6.4vw, 5.2rem);
   letter-spacing: .02em; white-space: nowrap;
   color: transparent;
@@ -605,6 +608,10 @@ svg { display: block; }
 .now-ico svg { width: 15px; height: 15px; }
 .now-list li:hover .now-ico { transform: rotate(-12deg) scale(1.15); }
 .now-name { font-family: var(--serif); font-size: 16.5px; font-weight: 900; }
+.now-body { display: block; }
+.now-go { color: var(--faint); display: inline-flex; align-self: center; transition: color .18s ease, transform .25s var(--ease); }
+.now-go .ico { width: 13px; height: 13px; }
+.now-list li:hover .now-go { color: var(--accent); transform: translate(1.5px, -1.5px); }
 .now-status {
   font-family: var(--mono); font-size: 11px; color: var(--muted);
   background: var(--veil); border: 1px solid var(--line-soft);
@@ -1057,7 +1064,6 @@ svg { display: block; }
 
 .proj-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px 18px; flex-wrap: wrap; }
 .pi-name { font-family: var(--serif); font-size: 18px; font-weight: 900; transition: color .18s ease; }
-.proj-card:hover .pi-name { color: var(--accent); }
 .proj-meta {
   display: inline-flex; align-items: center; gap: 12px;
   font-family: var(--mono); font-size: 11.5px; color: var(--muted);
@@ -1362,7 +1368,12 @@ svg { display: block; }
 .md-body hr { border: 0; border-top: 1px solid var(--line-soft); margin: 32px 0; }
 
 /* ── 08 杂项 ─────────────────────────────────────────────── */
-.progress { position: fixed; top: 0; left: 0; z-index: 200; height: 2px; width: 0; background: var(--accent); }
+.progress {
+  position: fixed; top: 0; left: 0; z-index: 200; height: 2px; width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--sakura));
+  transform: scaleX(var(--p, 0)); transform-origin: left;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
+}
 .toast {
   position: fixed; bottom: 32px; left: 50%; z-index: 300;
   transform: translate(-50%, 14px);
@@ -1377,19 +1388,21 @@ svg { display: block; }
   position: fixed; right: 24px; bottom: 24px; z-index: 150;
   width: 40px; height: 40px; border-radius: 6px;
   border: 1px solid var(--line);
-  background: var(--paper);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   color: var(--muted);
   display: grid; place-items: center;
   opacity: 0; pointer-events: none; transform: translateY(8px);
   transition: opacity .25s ease, transform .3s var(--ease), color .18s ease;
 }
 .to-top.show { opacity: 1; pointer-events: auto; transform: none; }
-.to-top:hover { color: var(--accent); }
+.to-top:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-2px); }
 .to-top svg { width: 16px; height: 16px; }
 
 .nope-x {
   position: fixed; z-index: 500; pointer-events: none;
-  font-family: var(--mono); font-weight: 700;
+  font-family: var(--mono); font-weight: 500;
   color: var(--accent);
   animation: nope-drop .95s cubic-bezier(.3, .45, .5, 1) forwards;
 }
@@ -1434,42 +1447,33 @@ main, .site-foot { position: relative; z-index: 1; }
 .ico { width: 15px; height: 15px; flex-shrink: 0; }
 
 /* ── 09 动效 ─────────────────────────────────────────────── */
-/* 跨文档视图过渡：整页柔和交叉淡化。页头不再单独命名——
+/* 跨文档视图过渡：整页柔和交叉淡化。页头不单独命名——
    Chromium 对 backdrop-filter 快照不稳，命名页头更容易出现色差闪变；
-   靠 sessionStorage 壁纸 + 同色 html 底保持背景连续。 */
+   靠 sessionStorage 壁纸 + 同色 html 底保持背景连续。
+   新页正文在过渡期间保持毛玻璃（不再强制关掉），避免卡片
+   在过渡结束瞬间「由清变糊」的二次闪。 */
 @view-transition {
   navigation: auto;
 }
 
 ::view-transition-old(root) {
-  animation: vt-fade-out .2s ease-in both;
+  animation: vt-fade-out .22s ease-in both;
 }
 ::view-transition-new(root) {
-  animation: vt-fade-in .32s var(--ease) both;
+  animation: vt-fade-in .36s var(--ease) both;
 }
 @keyframes vt-fade-out {
   to { opacity: 0; }
 }
 @keyframes vt-fade-in {
-  from { opacity: 0; }
-}
-
-/* 仅内容区在过渡时关掉毛玻璃，页头保留——避免页头突然「由糊变清」的色差 */
-html:active-view-transition main,
-html:active-view-transition main *,
-html:active-view-transition main *::before,
-html:active-view-transition main *::after,
-html:active-view-transition .site-foot,
-html:active-view-transition .site-foot * {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  from { opacity: 0; transform: translateY(6px); }
 }
 
 /* 旧浏览器兜底：JS 交棒离场 */
 html.leaving main,
 html.leaving .site-foot {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-8px);
   pointer-events: none;
   transition: opacity .2s ease-in, transform .2s ease-in;
 }
@@ -1485,42 +1489,116 @@ html.leaving .site-foot {
 }
 .js.vt-nav .fall-text .ch { animation-duration: .34s; animation-delay: calc(var(--i, 0) * 8ms); }
 /* 入场：纯 CSS load 动画，播完回到自然状态，内容永远以可见收尾。
-   动态插入的节点（筛选列表、正文段）插入即播，不依赖 JS 解锁。 */
+   动态插入的节点（筛选列表、正文段）插入即播，不依赖 JS 解锁。
+   冷启动有开机动画时，入场先暂停在起始帧，幕布揭开再起播。 */
 .js .rv { animation: rv-in .6s var(--ease) backwards; animation-delay: var(--d, 0s); }
 @keyframes rv-in { from { opacity: 0; transform: translateY(12px); } }
+html.booting .rv, html.booting .fall-text .ch { animation-play-state: paused; }
 
-/* 离场：越过触发线播一次固定动画，不跟滚轮。
-   拆字块逐字散开，其余整块上浮/下沉；滚回来按原路散着重现。 */
-.rv, .fall-text .ch, .char-split .ch {
-  transition: opacity .45s var(--ease), transform .45s var(--ease);
+/* 离场：只有大标题会在滚出页头时轻轻散开（一次固定动画，不跟滚轮），
+   正文不再逐字溶解——阅读中的文字不该消失，也省掉成百上千个过渡节点。 */
+.fall-text .ch {
+  display: inline-block; white-space: pre;
+  transition: opacity .4s var(--ease), transform .4s var(--ease);
   transition-delay: var(--fd, 0ms);
+  /* 标题逐字上浮（load 一次），动画结束由 JS 松手交给离场转场 */
+  animation: ch-in .55s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 30ms);
 }
-.bye, .bye-bottom { opacity: 0; }
-.bye { transform: translateY(-16px); }
-.bye-bottom { transform: translateY(16px); }
-
-.char-split .ch { display: inline-block; white-space: pre; }
-.fall-text .ch { display: inline-block; white-space: pre; }
-.bye .ch, .bye-bottom .ch { opacity: 0; }
-.bye .ch { transform: translateY(calc(-1 * var(--fy, var(--cfy, 80)) * 1px)) rotate(var(--fr, var(--cfr, 0deg))); }
-.bye-bottom .ch { transform: translateY(calc(var(--cry, 80) * 1px)) rotate(var(--crr, 0deg)); }
-
-/* 高亮条（mark/code/term）自身随字符离场淡出，避免底色留在原地 */
-.ch-fade { transition: opacity .32s var(--ease) .12s; }
-.bye .ch-fade, .bye-bottom .ch-fade { opacity: 0; }
-
-/* 标题逐字上浮（load 一次），动画结束由 JS 松手交给离场转场 */
-.fall-text .ch { animation: ch-in .55s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 30ms); }
+.bye .ch { opacity: 0; transform: translateY(-14px) rotate(var(--fr, 0deg)); }
 @keyframes ch-in { from { opacity: 0; transform: translateY(.55em); } }
 
-/* 主题切换：View Transitions 交叉淡化 + 降级整页渐变 */
-html.theme-vt::view-transition-old(root),
-html.theme-vt::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+/* 主题切换：从点击处扩开的圆形揭幕（新皮肤从指尖晕开）。
+   旧快照静止在下，新快照用 clip-path 圆形放大盖上来；
+   不支持 VT 时退回整页颜色渐变。 */
+html.theme-vt::view-transition-old(root) { animation: none; mix-blend-mode: normal; }
+html.theme-vt::view-transition-new(root) {
+  animation: theme-reveal .62s cubic-bezier(.2, .8, .2, 1) both;
+  mix-blend-mode: normal;
+}
+html.theme-vt::view-transition-group(root) { animation-duration: .62s; }
+@keyframes theme-reveal {
+  from { clip-path: circle(0 at var(--tx, 50%) var(--ty, 50%)); }
+  to   { clip-path: circle(var(--tr, 150vmax) at var(--tx, 50%) var(--ty, 50%)); }
+}
 html.theme-anim, html.theme-anim body,
 html.theme-anim *::before, html.theme-anim *::after,
 html.theme-anim *:not(svg):not(svg *) {
   transition: background-color .3s ease, color .3s ease, border-color .3s ease !important;
 }
+
+/* 站徽：悬停时轨道转半圈，像一颗被拨动的小行星 */
+.logo-mark ellipse { transform-origin: 16px 16px; transition: transform .6s var(--ease); }
+.logo:hover .logo-mark ellipse { transform: rotate(180deg); }
+
+/* Hero 卡片：跟随指针的微倾斜（纯 transform，JS 只改两个变量） */
+.tilt {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+  transition: transform .5s var(--ease), box-shadow .45s var(--ease), border-color .25s ease;
+  will-change: transform;
+}
+.tilt:hover { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-2px); }
+.tilt.tilting { transition: transform .12s ease-out, box-shadow .45s var(--ease), border-color .25s ease; }
+
+/* 代码块：右上角复制小按钮（hover 浮现，复制后打勾 900ms） */
+.body pre, .md-body pre { position: relative; }
+.pre-copy {
+  position: absolute; top: 8px; right: 8px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
+  color: var(--panel-dim);
+  border: 1px solid var(--panel-line); border-radius: 6px;
+  padding: 3px 9px;
+  background: rgba(255, 255, 255, .04);
+  opacity: 0; transform: translateY(-3px);
+  transition: opacity .2s ease, transform .25s var(--ease), color .18s ease, border-color .18s ease;
+}
+pre:hover .pre-copy, .pre-copy:focus-visible { opacity: 1; transform: none; }
+.pre-copy:hover { color: var(--panel-cyan); border-color: var(--panel-cyan); }
+.pre-copy.copied { color: var(--panel-ok); border-color: var(--panel-ok); opacity: 1; transform: none; }
+@media (hover: none) {
+  .pre-copy { opacity: 1; transform: none; }
+  .theme-btn:hover, .menu-btn:hover { background: none; color: var(--muted); }
+  .theme-btn:hover svg { transform: none; }
+}
+
+/* 开机动画：冷启动（新会话 + 非站内翻页）时才出，站徽轨道自转 +
+   一条细光带 + 终端式状态行；揭幕后从中间向两侧收起。 */
+.boot {
+  position: fixed; inset: 0; z-index: 1200;
+  display: none;
+  align-items: center; justify-content: center;
+  background: var(--paper);
+  color: var(--ink);
+}
+html.booting .boot { display: flex; }
+html.booting body { overflow: hidden; }
+.boot.done { animation: boot-out .5s cubic-bezier(.7, 0, .3, 1) forwards; pointer-events: none; }
+@keyframes boot-out {
+  to { opacity: 0; transform: scale(1.03); visibility: hidden; }
+}
+.boot-inner { display: flex; flex-direction: column; align-items: center; gap: 22px; animation: boot-in .5s var(--ease) both; }
+@keyframes boot-in { from { opacity: 0; transform: translateY(8px); } }
+.boot.done .boot-inner { animation: boot-inner-out .35s ease-in forwards; }
+@keyframes boot-inner-out { to { opacity: 0; transform: translateY(-6px); } }
+.boot-mark { width: 64px; height: 64px; }
+.boot-mark .b-core { fill: var(--blue); transform-box: fill-box; transform-origin: center; animation: boot-core 1.6s ease-in-out infinite; }
+.boot-mark ellipse { stroke: var(--blue); opacity: .5; }
+.boot-mark .b-spark { fill: var(--accent); filter: drop-shadow(0 0 3px var(--accent)); }
+@keyframes boot-core { 50% { transform: scale(.86); opacity: .8; } }
+.boot-name { font-family: var(--mono); font-size: 14px; letter-spacing: .12em; color: var(--ink); }
+.boot-name b { font-weight: 500; }
+.boot-name i { font-style: normal; color: var(--faint); margin-left: 6px; }
+.boot-line { width: 168px; height: 1px; background: var(--line-soft); position: relative; overflow: hidden; border-radius: 1px; }
+.boot-line::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--sakura), transparent);
+  transform: translateX(-100%);
+  animation: boot-beam 1.1s cubic-bezier(.4, 0, .2, 1) infinite;
+}
+@keyframes boot-beam { to { transform: translateX(100%); } }
+.boot-log { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--muted); min-height: 1.6em; }
+.boot-log .caret { height: 11px; width: 6px; vertical-align: -1px; margin-left: 4px; }
+
+/* 移动端全屏菜单：淡入下滑 + 收起时回退（不再是 display 硬切） */
 @keyframes menu-fade { from { opacity: 0; transform: translateY(-6px); } }
 
 /* ── 10 响应式 ───────────────────────────────────────────── */
@@ -1536,18 +1614,21 @@ html.theme-anim *:not(svg):not(svg *) {
   body { font-size: 15.5px; }
   .menu {
     position: fixed; top: 60px; left: 0; right: 0; bottom: 0;
-    display: none;
+    display: flex;
     flex-direction: column; gap: 2px;
     background: var(--menu-bg);
     -webkit-backdrop-filter: blur(16px) saturate(1.2);
     backdrop-filter: blur(16px) saturate(1.2);
     padding: calc(30px + env(safe-area-inset-top)) 26px calc(30px + env(safe-area-inset-bottom));
-    animation: menu-fade .3s ease;
     overflow-y: auto;
     overscroll-behavior: contain;
+    opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: opacity .28s ease, transform .32s var(--ease), visibility 0s linear .32s;
   }
-  .menu.open { display: flex; }
-  .menu a { padding: 16px 4px; font-size: 18px; border-bottom: 1px solid var(--line-soft); }
+  .menu.open { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+  .menu a { padding: 16px 4px; font-size: 18px; border-bottom: 1px solid var(--line-soft); opacity: 0; transform: translateY(6px); transition: opacity .3s ease, transform .35s var(--ease), color .18s ease; }
+  .menu.open a { opacity: 1; transform: none; transition-delay: calc(40ms + var(--i, 0) * 40ms); }
+  .menu a::after { display: none; }
   .menu-btn { display: grid; }
 
   .home-top { padding-top: 44px; }
@@ -1555,8 +1636,10 @@ html.theme-anim *:not(svg):not(svg *) {
   .sect { margin-top: 64px; }
   .blog-grid { grid-template-columns: 1fr; }
 
-  .post-row { grid-template-columns: 1fr; gap: 3px; padding: 14px 2px; }
-  .pr-cat { display: none; }
+  .post-row { grid-template-columns: auto 1fr; grid-template-areas: "date cat" "title title"; gap: 6px 8px; padding: 14px 6px; }
+  .pr-date { grid-area: date; }
+  .pr-cat { grid-area: cat; justify-self: start; font-size: 11px; padding: 2px 9px; }
+  .pr-title { grid-area: title; font-size: 17px; }
   .post-wrap { padding: 0 22px; }
   .post-toc { display: none; }
   .article { padding: 0; }
@@ -1590,8 +1673,9 @@ html.theme-anim *:not(svg):not(svg *) {
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(root), ::view-transition-new(root),
   .js .rv, .fall-text .ch { animation: none; opacity: 1; transform: none; }
-  .rv, .fall-text .ch, .char-split .ch { transition: none; }
-  .skeleton .sk, .dot-live, .pi-dot { animation: none; }
+  .fall-text .ch, .tilt { transition: none; }
+  .skeleton .sk, .dot-live, .u-dot, .halo, .bg-komorebi.ready { animation: none; }
+  .boot { display: none !important; }
   *, *::before, *::after {
     animation-duration: .01ms !important;
     transition-duration: .01ms !important;

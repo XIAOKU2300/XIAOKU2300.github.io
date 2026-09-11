@@ -122,7 +122,7 @@
   /* ── 主题四态：浅色 → 深色 → 猛男粉 → 若叶绿（初始判定在 <head> 内联脚本）── */
   const THEMES = [
     { id: "light", name: "浅色", bar: "#FAF7F1" },
-    { id: "dark",  name: "深色", bar: "#131418" },
+    { id: "dark",  name: "深色", bar: "#0B0F19" },
     { id: "pink",  name: "猛男粉", bar: "#FDF0F5" },
     { id: "green", name: "若叶绿", bar: "#EAF6EE" }
   ];
@@ -245,6 +245,7 @@
       if (matchMedia("(prefers-reduced-motion: reduce)").matches || !petalCtx) return;
       const href = e.target.closest("a[href]")?.getAttribute("href") || "";
       if (/\.html($|\?)/.test(href)) return;
+      if (e.target.closest("#theme-btn")) return;   // 换肤已有自己的花瓣
       if (burstPetals.length > 130) return;   // 疯狂连点兜底
       for (let i = 0; i < 6; i++) {
         const ang = (Math.PI * 2 * i) / 6 + rand(-.3, .3);
@@ -282,8 +283,12 @@
       };
       const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      // 首选：View Transitions 换肤（交叉淡化 + 微缩放，纯合成器动画不掉帧）
+      // 首选：View Transitions 换肤——新皮肤从点击处圆形晕开（clip-path 合成器动画）
       if (document.startViewTransition && !reduce) {
+        const r = Math.hypot(Math.max(bx, innerWidth - bx), Math.max(by, innerHeight - by));
+        root.style.setProperty("--tx", bx + "px");
+        root.style.setProperty("--ty", by + "px");
+        root.style.setProperty("--tr", Math.ceil(r) + "px");
         root.classList.add("theme-vt");
         window.__pauseTyping = true;   // 打字机暂停：揭幕瞬间文字才不会跳变
         burstAt(bx, by, next.id);      // 花瓣与换肤同时炸开，成为转场的一部分
@@ -322,11 +327,16 @@
     $$(".menu a").forEach((a) => a.classList.toggle("active", a.dataset.nav === page));
 
     const menu = $("#nav-links"), menuBtn = $("#menu-btn");
-    menuBtn?.addEventListener("click", () => {
-      const open = menu.classList.toggle("open");
-      menuBtn.classList.toggle("open", open);
+    $$("a", menu).forEach((a, i) => a.style.setProperty("--i", i));
+    const setMenu = (open) => {
+      menu.classList.toggle("open", open);
+      menuBtn?.classList.toggle("open", open);
+      menuBtn?.setAttribute("aria-expanded", String(open));
       document.body.style.overflow = open ? "hidden" : "";
-    });
+    };
+    menuBtn?.addEventListener("click", () => setMenu(!menu.classList.contains("open")));
+    addEventListener("keydown", (e) => { if (e.key === "Escape" && menu?.classList.contains("open")) setMenu(false); });
+    addEventListener("resize", () => { if (innerWidth > 720 && menu?.classList.contains("open")) setMenu(false); });
     menu?.addEventListener("click", (e) => {
       if (e.target.closest("a")) {
         menu.classList.remove("open");
@@ -336,11 +346,19 @@
     });
 
     const bar = $(".progress"), toTop = $("#to-top");
-    addEventListener("scroll", () => {
-      const h = document.documentElement;
-      bar.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100 || 0) + "%";
-      toTop?.classList.toggle("show", h.scrollTop > 640);
-    }, { passive: true });
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const h = document.documentElement;
+        if (!bar.dataset.nav) bar.style.setProperty("--p", (h.scrollTop / (h.scrollHeight - h.clientHeight) || 0).toFixed(4));
+        toTop?.classList.toggle("show", h.scrollTop > 640);
+      });
+    };
+    addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
     toTop?.addEventListener("click", () => scrollTo({ top: 0, behavior: "smooth" }));
   }
 
@@ -658,22 +676,15 @@
         onSpy();
       }
 
-      // 正文逐段浮现 + 拆字溶解（.rv 插入即播，离场由触发器接管）
+      // 正文逐段浮现（.rv 插入即播）。不再逐字拆分：阅读中的文字不该消失，
+      // 也省掉成百上千个过渡节点带来的滚动卡顿
       if (body) {
-        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
         [...body.children].forEach((el, i) => {
-          el.classList.add("rv", "rv-handled");
+          el.classList.add("rv");
           el.style.setProperty("--d", Math.min(i * 40, 280) + "ms");
-          if (reduce) return;
-          if (el.tagName === "UL") {
-            $$("li", el).forEach(splitBlockChars);
-          } else if (el.matches("p, h2, blockquote")) {
-            splitBlockChars(el);
-          }
         });
       }
-
-      initExitFx();   // 正文落地后补挂离场触发器
+      addCopyButtons(root);
     });
   }
   /* 技术标签情境分类：运维/硬件 → 薄荷，其余 → 冰青 */
@@ -883,20 +894,17 @@
     walk(el);
     [...el.querySelectorAll(".ch")].forEach((s, i) => {
       s.style.setProperty("--i", Math.min(i, 16));                    // 逐字上浮的先后
-      s.style.setProperty("--fy", (60 + Math.random() * 110).toFixed(0));   // 被吸走的高度
-      s.style.setProperty("--fr", (Math.random() * 72 - 36).toFixed(1));    // 歪斜角度
-      s.style.setProperty("--fd", (Math.random() * 110).toFixed(0) + "ms"); // 离场散开延迟
+      s.style.setProperty("--fr", (Math.random() * 16 - 8).toFixed(1) + "deg"); // 离场轻微歪头
+      s.style.setProperty("--fd", Math.min(i * 14, 220) + "ms");                 // 离场按字序散开
       // 入场动画结束后松手，让离场转场接管
       s.addEventListener("animationend", () => { s.style.animation = "none"; }, { once: true });
     });
   }
 
-  /* ── 离场触发器：越过顶线被吸上去，越过底线坠下去 ──────────
-     用两个 IntersectionObserver 检测"越过线"的瞬间，播放一次
-     固定时长的离场动画，不跟随滚轮进度。滚回来时散着重现。
-     可重入：文章正文是异步渲染的，落地后再调用一次补挂新目标。 */
-  let exitTopIO = null, exitBottomIO = null;
-  const exitWatched = new WeakSet();   // 已挂观察
+  /* ── 离场触发器：大标题滚出页头时轻轻散开（一次固定动画，不跟滚轮），
+     滚回来按原路重现。只观察 .fall-text，正文不参与。 */
+  let exitTopIO = null;
+  const exitWatched = new WeakSet();
   const exitSeen = new WeakSet();      // 曾进入过视口（离场效果的前置条件）
   function initExitFx() {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -910,82 +918,15 @@
             exitSeen.add(el);
             el.classList.remove("bye");
           } else if (exitSeen.has(el) && en.boundingClientRect.bottom <= line + 4) {
-            el.classList.add("bye");          // 上过屏、再滚出顶线才被吸走
-            el.classList.remove("bye-bottom");
+            el.classList.add("bye");
           }
         });
       }, { rootMargin: `-${line}px 0px 0px 0px`, threshold: 0 });
-
-      exitBottomIO = new IntersectionObserver((entries) => {
-        entries.forEach((en) => {
-          const el = en.target;
-          if (en.isIntersecting) {
-            exitSeen.add(el);
-            el.classList.remove("bye-bottom");
-          } else if (exitSeen.has(el) && en.boundingClientRect.top >= innerHeight - 94) {
-            el.classList.add("bye-bottom");   // 上过屏、再滚出底线才坠落
-            el.classList.remove("bye");
-          }
-        });
-      }, { rootMargin: "0px 0px -90px 0px", threshold: 0 });
     }
-
-    $$(".fall-text, .body > .rv").forEach((t) => {
+    $$(".fall-text").forEach((t) => {
       if (exitWatched.has(t)) return;
-      exitWatched.add(t);          // 只防重复挂观察
+      exitWatched.add(t);
       exitTopIO.observe(t);
-      exitBottomIO.observe(t);
-    });
-  }
-
-  /* ── 拆正文块的单字（溶解用，每字随机坠落/上浮距离与角度）──
-     mark 高亮句 / term 术语 / code 代码片作为整体成组移动，
-     避免下划线和荧光底留在原地 */
-  function splitBlockChars(el) {
-    if (el.dataset.split) return;
-    el.dataset.split = "1";
-    el.classList.add("char-split");
-    const rand = (a, b) => a + Math.random() * (b - a);
-    const setVars = (s) => {
-      s.style.setProperty("--cfy", rand(30, 125).toFixed(0));
-      s.style.setProperty("--cry", rand(30, 125).toFixed(0));
-      s.style.setProperty("--cfr", rand(-21, 21).toFixed(1));
-      s.style.setProperty("--crr", rand(-21, 21).toFixed(1));
-    };
-    const walk = (node) => {
-      [...node.childNodes].forEach((child) => {
-        if (child.nodeType === 3) {
-          const frag = document.createDocumentFragment();
-          tokenizeText(child.textContent).forEach((tk) => {
-            if (/^\s+$/.test(tk)) { frag.appendChild(document.createTextNode(" ")); return; }
-            if (lastBox && tk.length === 1 && NO_HEAD.includes(tk)) { lastBox.textContent += tk; return; }
-            const s = document.createElement("span");
-            s.className = "ch";
-            s.textContent = tk;
-            setVars(s);
-            lastBox = s;
-            frag.appendChild(s);
-          });
-          node.replaceChild(frag, child);
-        } else if (child.nodeType === 1) {
-          if (child.tagName === "MARK" || child.tagName === "CODE" || child.classList.contains("term")) {
-            // 高亮/术语元素本身保持可换行的行内盒，拆它内部的字；
-            // 离场时元素底色随字符一起淡出（见 CSS 的 .bye mark 规则）
-            child.classList.add("ch-fade");
-            walk(child);
-          } else {
-            walk(child);
-          }
-        }
-      });
-    };
-    let lastBox = null;
-    walk(el);
-    // 按字序线性扫过（0→620ms），加一点抖动更自然
-    const chars = el.querySelectorAll(".ch");
-    const total = Math.max(chars.length - 1, 1);
-    chars.forEach((s, i) => {
-      s.style.setProperty("--fd", ((i / total) * 620 + rand(0, 45)).toFixed(0) + "ms");
     });
   }
 
@@ -1037,9 +978,19 @@
     c.setAttribute("aria-hidden", "true");
     document.body.prepend(c);
     petalCtx = c.getContext("2d");
-    const resize = () => { petalW = c.width = innerWidth; petalH = c.height = innerHeight; };
+    const resize = () => {
+      const dpr = Math.min(devicePixelRatio || 1, 2);   // 高分屏不糊，上限 2 省 GPU
+      petalW = innerWidth; petalH = innerHeight;
+      c.width = Math.round(petalW * dpr); c.height = Math.round(petalH * dpr);
+      petalCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
     addEventListener("resize", resize);
     resize();
+    let running = true;
+    document.addEventListener("visibilitychange", () => {
+      running = !document.hidden;
+      if (running) tick();          // 回到前台再起 rAF，切走时不空转
+    });
     for (let i = 0; i < (innerWidth < 720 ? 12 : 22); i++) {
       ambientPetals.push({
         x: rand(0, innerWidth), y: rand(-innerHeight, 0),
@@ -1049,7 +1000,8 @@
         o: rand(.35, .65), heart: false
       });
     }
-    (function tick() {
+    function tick() {
+      if (!running) return;
       requestAnimationFrame(tick);
       petalCtx.clearRect(0, 0, petalW, petalH);
       petalCtx.fillStyle = petalColor();
@@ -1079,7 +1031,8 @@
         petalCtx.restore();
       }
       petalCtx.globalAlpha = 1;
-    })();
+    }
+    tick();
   }
 
   /* ── 若叶绿底图：loliapi 随机二次元图。整个浏览会话固定一张：
@@ -1145,18 +1098,151 @@
       if (!a || e.defaultPrevented || a.target === "_blank") return;
       try { if (new URL(a.href, location.href).origin !== location.origin) return; } catch { return; }
       if (!/\.html($|\?)/.test(a.getAttribute("href"))) return;
-      bar.style.transition = "width .3s ease";
-      bar.style.width = "72%";
+      bar.dataset.nav = "1";
+      bar.style.transition = "transform .3s ease";
+      bar.style.setProperty("--p", ".72");
     }, true);
     addEventListener("pageshow", () => {
-      bar.style.transition = "width .25s ease";
-      bar.style.width = "100%";
-      setTimeout(() => { bar.style.transition = "none"; bar.style.width = "0"; }, 300);
+      bar.dataset.nav = "1";
+      bar.style.transition = "transform .25s ease";
+      bar.style.setProperty("--p", "1");
+      setTimeout(() => {
+        bar.style.transition = "opacity .2s ease";
+        bar.style.opacity = "0";
+        setTimeout(() => { delete bar.dataset.nav; bar.style.transition = "none"; bar.style.setProperty("--p", "0"); bar.style.opacity = ""; }, 200);
+      }, 260);
     });
+  }
+
+  /* ── 开机动画：冷启动才出（判定在 <head> 内联脚本里加 html.booting）。
+     终端式滚三行日志，等 load / 字体就绪且至少亮 1s 后揭幕；
+     最长 2.4s 强制放行，绝不卡住内容。 ── */
+  function initBoot() {
+    const root = document.documentElement;
+    const el = $("#boot");
+    if (!root.classList.contains("booting") || !el) return Promise.resolve();
+    try { sessionStorage.setItem("aster-booted", "1"); } catch {}
+    const log = $("#boot-log");
+    const lines = ["mounting /home/aster", "loading fonts + petals", "systemctl start blog"];
+    let i = 0;
+    const caret = '<span class="caret" aria-hidden="true"></span>';
+    const step = () => {
+      if (!log || i >= lines.length) return;
+      log.innerHTML = `<span class="t-out">&gt; ${lines[i++]}</span>${caret}`;
+    };
+    step();
+    const stepTimer = setInterval(step, 300);
+    const loaded = new Promise((r) => {
+      if (document.readyState === "complete") r();
+      else addEventListener("load", r, { once: true });
+    });
+    return Promise.race([
+      Promise.all([loaded, whenReady(1200), sleep(1000)]),
+      sleep(2400)
+    ]).then(() => {
+      clearInterval(stepTimer);
+      if (log) log.innerHTML = `<span class="t-ok">&gt; ready. welcome ♪</span>`;
+      return sleep(160);
+    }).then(() => {
+      el.classList.add("done");
+      root.classList.remove("booting");   // 入场动画从暂停态起播（见 CSS .booting .rv）
+      setTimeout(() => el.remove(), 600);
+    });
+  }
+
+  /* ── 指针微倾斜：hero 卡与头像卡跟着鼠标轻轻转头（±2°），离开回正 ── */
+  function initTilt() {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    $$(".hero-card, .dock-card").forEach((card) => {
+      card.classList.add("tilt");
+      let raf = 0;
+      card.addEventListener("pointermove", (e) => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          const r = card.getBoundingClientRect();
+          const px = (e.clientX - r.left) / r.width - .5;
+          const py = (e.clientY - r.top) / r.height - .5;
+          card.classList.add("tilting");
+          card.style.setProperty("--ry", (px * 4).toFixed(2) + "deg");
+          card.style.setProperty("--rx", (-py * 4).toFixed(2) + "deg");
+        });
+      });
+      card.addEventListener("pointerleave", () => {
+        card.classList.remove("tilting");
+        card.style.setProperty("--rx", "0deg");
+        card.style.setProperty("--ry", "0deg");
+      });
+    });
+  }
+
+  /* ── 代码块复制按钮（文章正文 / 全文页）────────────────────── */
+  function addCopyButtons(scope = document) {
+    $$("pre", scope).forEach((pre) => {
+      if (pre.querySelector(".pre-copy")) return;
+      const btn = document.createElement("button");
+      btn.className = "pre-copy";
+      btn.type = "button";
+      btn.textContent = "COPY";
+      btn.setAttribute("aria-label", "复制代码");
+      btn.addEventListener("click", async () => {
+        await copyText(pre.querySelector("code")?.innerText ?? pre.innerText);
+        btn.textContent = "COPIED ✓";
+        btn.classList.add("copied");
+        setTimeout(() => { btn.textContent = "COPY"; btn.classList.remove("copied"); }, 1400);
+      });
+      pre.appendChild(btn);
+    });
+  }
+
+  /* ── 小玩意：标签页离开时改标题、快捷键、控制台署名、Konami 花瓣暴风 ── */
+  function initToys() {
+    // 切走标签页：标题撒娇，回来恢复（文章页标题在 initPostPage 里改过，所以延后取）
+    let keptTitle = "";
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) { keptTitle = document.title; document.title = "( ˘･з･) 去哪了… · Aster"; }
+      else if (keptTitle) document.title = keptTitle;
+    });
+
+    // 快捷键：T 换肤（在输入框里不生效）
+    addEventListener("keydown", (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (/^(input|textarea|select)$/i.test(e.target.tagName) || e.target.isContentEditable) return;
+      if (e.key === "t" || e.key === "T") $("#theme-btn")?.click();
+    });
+
+    // Konami：↑↑↓↓←→←→BA → 樱吹雪 + 提示
+    const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+    let pos = 0;
+    addEventListener("keydown", (e) => {
+      const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      pos = k === KONAMI[pos] ? pos + 1 : (k === KONAMI[0] ? 1 : 0);
+      if (pos !== KONAMI.length) return;
+      pos = 0;
+      toast("樱吹雪 · コナミコマンド発動！");
+      const theme = document.documentElement.dataset.theme || "light";
+      let n = 0;
+      const storm = setInterval(() => {
+        burstAt(rand(0, innerWidth), rand(-20, innerHeight * .4), theme);
+        if (++n > 14) clearInterval(storm);
+      }, 90);
+    });
+
+    // 控制台署名
+    try {
+      console.log(
+        "%c ✦ aster.blog %c 手写 HTML / CSS / JS，没有框架 \n%c快捷键：T 换肤 · Esc 关菜单 · ↑↑↓↓←→←→BA 有惊喜",
+        "background:#2F55C9;color:#fff;padding:3px 8px;border-radius:4px 0 0 4px;font-weight:600",
+        "background:#0B0F19;color:#7DD3FC;padding:3px 8px;border-radius:0 4px 4px 0",
+        "color:#8B857B;font-size:11px"
+      );
+    } catch {}
   }
 
   /* ── 启动 ───────────────────────────────────────────────── */
   document.addEventListener("DOMContentLoaded", () => {
+    const booting = initBoot();
     initTheme();
     hydrate();
     initNav();
@@ -1164,7 +1250,7 @@
 
     if (page === "home") {
       renderHome();
-      typeMotd();
+      booting.then(() => typeMotd());   // 打字机等幕布揭开再开敲
     }
     if (page === "blog") initBlogPage();
     if (page === "post") initPostPage();
@@ -1191,6 +1277,13 @@
     initNavProgress();
     initPageTransitions();
     initClickFx();
+    initTilt();
+    initToys();
+    addCopyButtons();
+    // 全文页等异步渲染的代码块：落地后补按钮
+    new MutationObserver((ms) => {
+      if (ms.some((m) => [...m.addedNodes].some((n) => n.nodeType === 1 && (n.tagName === "PRE" || n.querySelector?.("pre"))))) addCopyButtons();
+    }).observe(document.body, { childList: true, subtree: true });
     // 看板娘让路：等主线程空闲再加载（内容/字体/壁纸优先）
     (window.requestIdleCallback || ((f) => setTimeout(f, 1200)))(() => initMusume());
     initEnergize();
