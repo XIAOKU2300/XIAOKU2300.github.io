@@ -1434,35 +1434,33 @@ main, .site-foot { position: relative; z-index: 1; }
 .ico { width: 15px; height: 15px; flex-shrink: 0; }
 
 /* ── 09 动效 ─────────────────────────────────────────────── */
-/* 跨文档视图过渡：页头连续、正文柔和交接，避免整页白闪。
-   过渡期间临时关掉毛玻璃，规避 Chromium 快照丢失 backdrop-filter。 */
+/* 跨文档视图过渡：整页柔和交叉淡化。页头不再单独命名——
+   Chromium 对 backdrop-filter 快照不稳，命名页头更容易出现色差闪变；
+   靠 sessionStorage 壁纸 + 同色 html 底保持背景连续。 */
 @view-transition {
   navigation: auto;
 }
 
 ::view-transition-old(root) {
-  animation: vt-fade-out .22s ease-in both;
+  animation: vt-fade-out .2s ease-in both;
 }
 ::view-transition-new(root) {
-  animation: vt-fade-in .38s var(--ease) both;
+  animation: vt-fade-in .32s var(--ease) both;
 }
 @keyframes vt-fade-out {
-  to { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 0; }
 }
 @keyframes vt-fade-in {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; }
 }
 
-.site-head { view-transition-name: site-head; }
-::view-transition-old(site-head),
-::view-transition-new(site-head) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-
-html:active-view-transition *,
-html:active-view-transition *::before,
-html:active-view-transition *::after {
+/* 仅内容区在过渡时关掉毛玻璃，页头保留——避免页头突然「由糊变清」的色差 */
+html:active-view-transition main,
+html:active-view-transition main *,
+html:active-view-transition main *::before,
+html:active-view-transition main *::after,
+html:active-view-transition .site-foot,
+html:active-view-transition .site-foot * {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -1471,16 +1469,21 @@ html:active-view-transition *::after {
 html.leaving main,
 html.leaving .site-foot {
   opacity: 0;
-  transform: translateY(-12px);
+  transform: translateY(-10px);
   pointer-events: none;
   transition: opacity .2s ease-in, transform .2s ease-in;
 }
-/* 站内翻页到达：入场更整、更轻，减少「空一拍再弹」的闪感 */
-.js.vt-nav .rv {
-  animation-duration: .42s;
-  animation-delay: calc(var(--d, 0s) * .35);
+/* 原生 VT 负责整页交接时：关掉 .rv 入场，避免「新页先空再弹」二次闪 */
+.js.vt-native .rv,
+.js.vt-native .fall-text .ch {
+  animation: none !important;
 }
-.js.vt-nav .fall-text .ch { animation-duration: .36s; animation-delay: calc(var(--i, 0) * 10ms); }
+/* 站内翻页（无原生 VT）：入场更整、更轻 */
+.js.vt-nav .rv {
+  animation-duration: .4s;
+  animation-delay: calc(var(--d, 0s) * .3);
+}
+.js.vt-nav .fall-text .ch { animation-duration: .34s; animation-delay: calc(var(--i, 0) * 8ms); }
 /* 入场：纯 CSS load 动画，播完回到自然状态，内容永远以可见收尾。
    动态插入的节点（筛选列表、正文段）插入即播，不依赖 JS 解锁。 */
 .js .rv { animation: rv-in .6s var(--ease) backwards; animation-delay: var(--d, 0s); }
@@ -1701,10 +1704,16 @@ html.theme-anim *:not(svg):not(svg *) {
 [data-theme="green"] .doc-toc,
 [data-theme="green"] .memo-card,
 [data-theme="green"] .motd-frame,
-[data-theme="green"] .site-head::before,
 [data-theme="green"] .menu {
   -webkit-backdrop-filter: blur(20px) saturate(1.8);
   backdrop-filter: blur(20px) saturate(1.8);
+}
+
+/* 页头玻璃：白纱减淡 + 饱和略降，和插画底更贴，减轻色差断层 */
+[data-theme="green"] .site-head::before {
+  background: color-mix(in srgb, var(--paper) 52%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.45);
+  backdrop-filter: blur(18px) saturate(1.45);
 }
 
 /* 中性卡片 hover：泛起嫩草绿微光（阵营情绪色卡片的 hover 不覆盖） */

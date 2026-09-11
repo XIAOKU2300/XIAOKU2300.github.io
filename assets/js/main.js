@@ -138,6 +138,10 @@
     const ref = document.referrer && new URL(document.referrer);
     if (ref && ref.origin === location.origin) {
       document.documentElement.classList.add("vt-nav");
+      // 原生跨文档 VT 可用时：关掉 .rv 入场，避免与整页淡化叠成二次闪
+      if (typeof CSS !== "undefined" && CSS.supports("view-transition-name", "site-head")) {
+        document.documentElement.classList.add("vt-native");
+      }
     }
   } catch {}
 
