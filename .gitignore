@@ -1,0 +1,15 @@
+# 非站点内容
+.playwright-mcp/
+_walltest/
+截图预览/
+astrbot_plugin_shenren/
+astrbot_plugin_shenren.zip
+comfyui_pro_analysis/
+xw_analysis/
+xw_report/
+assets/xw-arch.md
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini

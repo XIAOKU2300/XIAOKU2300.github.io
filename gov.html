@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23A90329'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23FFDE00'>%E5%8D%8F</text%3E%3C/svg%3E">
+<meta charset="UTF-8">
+<title>Aster技术折腾事务管理中心 - 欢迎您！</title>
+<style>
+  body { background:#FCFCF5; font-family:"宋体","SimSun",serif; font-size:14px; color:#000; margin:0; }
+  a { color:#0000CE; text-decoration:underline; }
+  a:visited { color:#551A8B; }
+  a:hover { color:#CC0000; }
+  .topbar { background:#3A6EA5; color:#fff; font-size:12px; padding:4px 10px; text-align:right; }
+  .topbar a { color:#fff; text-decoration:none; margin:0 6px; }
+  .header { background:linear-gradient(180deg,#D63030 0%,#A30000 70%,#8B0000 100%); text-align:center; padding:26px 10px 20px; border-bottom:3px solid #FFD700; }
+  .emblem { width:58px; height:58px; margin:0 auto 8px; background:#FFD700; border-radius:50%; line-height:58px; font-size:34px; color:#A30000; font-weight:bold; font-family:"黑体"; box-shadow:0 0 0 3px #A30000, 0 0 0 5px #FFD700; }
+  .sitetitle { font-family:"楷体","KaiTi",serif; font-size:42px; font-weight:bold; color:#FFE97A; letter-spacing:8px; text-shadow:2px 2px 2px #6B0000; }
+  .siteen { color:#F0C0C0; font-size:11px; letter-spacing:2px; margin-top:6px; font-family:"Times New Roman",serif; }
+  .slogan { color:#FFF; font-size:14px; margin-top:8px; letter-spacing:14px; font-family:"楷体"; }
+  .dateline { background:#F3D9D9; border-bottom:1px solid #C9A0A0; font-size:12px; color:#6B2737; padding:5px 10px; text-align:center; }
+  .navbar { background:#B22222; text-align:center; padding:0; border-top:2px solid #FFD700; border-bottom:2px solid #7B0B0B; }
+  .navbar td { padding:9px 0; }
+  .navbar a { color:#FFF; text-decoration:none; font-size:15px; font-weight:bold; font-family:"黑体"; margin:0 14px; }
+  .navbar a:hover { color:#FFD700; }
+  .marqueebar { background:#FFFDE7; border-bottom:1px solid #E0D9A8; padding:6px 10px; font-size:13px; }
+  .marqueebar b { color:#CC0000; }
+  .layout { width:960px; margin:12px auto; }
+  .col { vertical-align:top; }
+  .box { border:1px solid #C9A0A0; margin-bottom:12px; background:#FFF; }
+  .box-h { background:linear-gradient(180deg,#D64545,#B22222); color:#FFF; font-family:"黑体"; font-size:14px; font-weight:bold; padding:6px 10px; text-align:left; }
+  .box-h .more { float:right; font-size:12px; font-weight:normal; font-family:"宋体"; }
+  .box-h .more a { color:#FFE97A; text-decoration:none; }
+  .box-b { padding:8px 10px; }
+  .newslist { list-style:none; margin:0; padding:0; }
+  .newslist li { padding:5px 0; border-bottom:1px dotted #CCC; font-size:13px; }
+  .newslist li span.date { float:right; color:#888; font-size:12px; }
+  .redtag { color:#CC0000; font-weight:bold; }
+  .new { color:#CC0000; font-size:10px; font-weight:bold; animation:blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+  .loginbox { width:90%; margin:6px auto; }
+  .loginbox input[type=text], .loginbox input[type=password] { width:100%; border:1px inset #999; background:#FFF; font-size:12px; padding:3px; box-sizing:border-box; font-family:"宋体"; }
+  .btn { border:2px outset #D0D0D0; background:#E6E6E6; font-size:12px; font-family:"宋体"; padding:3px 14px; cursor:pointer; }
+  .btn:active { border-style:inset; }
+  .captcha { border:1px outset #BBB; background:#3A6EA5; color:#FFF; font-family:"Times New Roman"; font-style:italic; font-weight:bold; letter-spacing:3px; padding:2px 8px; font-size:14px; user-select:none; }
+  .imgbox { border:1px solid #999; background:#EEE; text-align:center; padding:0; }
+  .imgbox .ph { height:150px; line-height:150px; color:#999; font-size:16px; letter-spacing:6px; background:linear-gradient(135deg,#E8E8E8 25%,#F5F5F5 25%,#F5F5F5 50%,#E8E8E8 50%,#E8E8E8 75%,#F5F5F5 75%); background-size:8px 8px; }
+  .headline { font-family:"黑体"; font-size:19px; text-align:center; color:#8B0000; margin:10px 0; }
+  .subhead { text-align:center; font-size:12px; color:#666; border-bottom:1px solid #C9A0A0; padding-bottom:8px; margin-bottom:8px; }
+  .dataTable { border-collapse:collapse; width:100%; font-size:13px; background:#FFF; }
+  .dataTable th { background:#F0D8D8; border:1px solid #C9A0A0; padding:5px; font-family:"黑体"; }
+  .dataTable td { border:1px solid #C9A0A0; padding:5px 8px; }
+  .dataTable td.num { font-family:"Times New Roman",serif; color:#A30000; font-weight:bold; }
+  .leaderbox { width:31%; border:1px solid #C9A0A0; background:#FDFDF8; text-align:center; vertical-align:top; padding-bottom:8px; }
+  .leaderph { height:110px; margin:8px; line-height:110px; color:#999; background:#EEE; border:1px solid #CCC; }
+  .leadername { font-family:"黑体"; font-size:13px; font-weight:bold; }
+  .leadertitle { font-size:12px; color:#666; }
+  .counter { font-family:"Times New Roman",serif; font-size:18px; color:#CC0000; font-weight:bold; letter-spacing:2px; background:#000; color:#0F0; padding:2px 8px; border:2px inset #888; display:inline-block; }
+  .footer { background:#B22222; color:#FFE97A; text-align:center; font-size:12px; padding:14px 10px; line-height:2; border-top:3px solid #FFD700; }
+  .footer a { color:#FFE97A; }
+  .friendlink { width:95%; border:1px solid #999; font-size:12px; font-family:"宋体"; }
+  .wanted-box { border:2px solid #CC0000; background:#FFFDF5; }
+  .wanted-box .box-h { background:linear-gradient(180deg,#CC0000,#8B0000); font-size:16px; letter-spacing:4px; text-align:center; }
+  .wanted-notice { font-size:13px; line-height:2; color:#6B2737; background:#FFF3F3; border:1px dashed #CC0000; padding:8px 12px; margin:10px 0 14px; }
+  .wanted-grid { width:100%; border-collapse:separate; border-spacing:12px 0; }
+  .wanted-card { width:33%; border:1px solid #C9A0A0; background:#FFF; vertical-align:top; padding-bottom:10px; }
+  .wanted-photo { position:relative; border-bottom:1px solid #C9A0A0; overflow:hidden; background:#FFF; }
+  .wanted-photo img { width:100%; display:block; }
+  .wanted-stamp {
+    position:absolute; right:8px; top:8px;
+    border:3px solid #CC0000; color:#CC0000;
+    font-family:"黑体"; font-weight:bold; font-size:17px; letter-spacing:5px;
+    padding:2px 4px 2px 9px;
+    transform:rotate(-14deg);
+    opacity:.85;
+    background:rgba(255,255,255,.55);
+  }
+  .wanted-name { font-family:"黑体"; font-size:15px; font-weight:bold; text-align:center; color:#8B0000; padding:6px 0 2px; }
+  .wanted-trait { font-size:11.5px; color:#888; text-align:center; border-bottom:1px dotted #C9A0A0; padding-bottom:6px; margin:0 10px 6px; }
+  .wanted-crime { font-size:12px; line-height:1.9; color:#333; margin:0 12px; padding-left:16px; }
+  .wanted-crime li { margin-bottom:3px; }
+  .wanted-reward { text-align:center; font-size:12.5px; color:#CC0000; font-weight:bold; padding:6px 0 2px; }
+  .wanted-disclaimer { font-size:11.5px; color:#999; text-align:center; margin-top:12px; }
+  .wanted-card.super { border:2px solid #CC0000; background:#FFF5F5; }
+  .wanted-stamp.super {
+    font-size:20px; letter-spacing:3px;
+    animation:stamp-pulse 1s steps(2) infinite;
+  }
+  @keyframes stamp-pulse { 50% { opacity:.35; } }
+  .wanted-name.super { color:#CC0000; font-size:17px; }
+  .wanted-tag { display:inline-block; background:#CC0000; color:#FFF; font-size:11px; font-family:"黑体"; padding:1px 8px; border-radius:2px; margin-left:6px; vertical-align:2px; }
+  .float-consult { position:fixed; right:8px; bottom:60px; width:110px; border:1px solid #C9A0A0; background:#FFFDE7; font-size:12px; box-shadow:2px 2px 6px rgba(0,0,0,.2); }
+  .float-consult .fc-h { background:#B22222; color:#FFF; padding:4px 6px; font-family:"黑体"; font-size:12px; }
+  .float-consult .fc-b { padding:8px; text-align:center; line-height:1.9; }
+  .backblog { position:fixed; left:8px; bottom:60px; }
+  .star-row { color:#FFD700; font-size:12px; letter-spacing:3px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="javascript:alert('无障碍功能建设中，请耐心等待');">无障碍</a>│<a href="javascript:alert('长者模式建设中');">长者模式</a>│<a href="javascript:alert('繁體版建設中');">繁體</a>│<a href="javascript:alert('Under construction');">EN</a>│<a href="javascript:window.external.AddFavorite(location.href,document.title);void(0);">加入收藏</a>│<a href="javascript:document.body.style.behavior='url(#default#homepage)';">设为首页</a>│<a href="index.html" style="color:#FFD700">返回个人站 »</a>
+</div>
+
+<div class="header">
+  <div class="emblem">★</div>
+  <div class="sitetitle">Aster技术折腾事务管理中心</div>
+  <div class="siteen">ASTER ADMINISTRATIVE CENTER OF TOSSING-ABOUT AFFAIRS</div>
+  <div class="slogan">为民折腾 · 折腾为民</div>
+</div>
+
+<div class="dateline">
+  2026年9月5日&nbsp;星期六&nbsp;│&nbsp;天气：晴转多云&nbsp;23℃&nbsp;│&nbsp;空气质量：优&nbsp;│&nbsp;【深夜折腾专项整治行动 进行中】
+</div>
+
+<table class="navbar" width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td>
+      <a href="#">首页</a>│<a href="#">机构设置</a>│<a href="#">政策文件</a>│<a href="#">办事服务</a>│<a href="#">信息公开</a>│<a href="#">数据发布</a>│<a href="#">政民互动</a>│<a href="#">网站地图</a>
+    </td>
+  </tr>
+</table>
+
+<div class="marqueebar">
+  <b>📢 通知：</b>
+  <marquee scrollamount="4" width="88%">【重要通知】关于开展2026年度深夜折腾专项整治工作的通知　　【公示】2026年第三季度声骸权重调整听证会结果已公布　　【表彰】关于授予WineFox项目组"年度攻坚先进集体"称号的决定</marquee>
+</div>
+
+<div class="layout">
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr>
+
+<td class="col" width="200">
+  <div class="box">
+    <div class="box-h">用户登录</div>
+    <div class="loginbox">
+      <p>用户名<br><input type="text" value="aster"></p>
+      <p>密　码<br><input type="password" value="114514"></p>
+      <p>验证码<br><input type="text" style="width:60px"> <span class="captcha">8x4K</span></p>
+      <p style="text-align:center">
+        <button class="btn">登 录</button>
+        <button class="btn">注 册</button>
+      </p>
+      <p style="font-size:12px;color:#666;text-align:center">忘记密码？请联系机房管理员</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="box-h">通知公告<div class="more"><a href="#">更多&gt;&gt;</a></div></div>
+    <div class="box-b">
+      <ul class="newslist">
+        <li><span class="date">09-05</span><a href="#">关于试行"作业优先"调度策略的公告</a><span class="new">New</span></li>
+        <li><span class="date">09-01</span><a href="#">关于NAS机箱夜间噪音投诉的回复函</a></li>
+        <li><span class="date">08-28</span><a href="#">鸣潮版本更新期间暂停查分服务的通告</a></li>
+        <li><span class="date">08-20</span><a href="#">关于开展无效Cookie集中清理的通知</a></li>
+        <li><span class="date">08-12</span><a href="#">Hi-Fi设备采购预算公开</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="box-h">访问统计</div>
+    <div class="box-b" style="text-align:center">
+      <p style="font-size:12px;margin:4px 0">您是本站第</p>
+      <p><span class="counter">00199552</span></p>
+      <p style="font-size:12px;margin:4px 0">位访客</p>
+      <p style="font-size:12px;color:#666">今日IP：3　昨日IP：57</p>
+    </div>
+  </div>
+</td>
+
+<td class="col" width="520" style="padding:0 12px">
+  <div class="imgbox">
+    <div class="ph">【 领导视察 NAS 机房 图片 】</div>
+    <div style="padding:6px;font-size:13px"><b>本中心主任一行深入 fnOS 机房一线，调研容器运维保障工作</b></div>
+  </div>
+
+  <div class="headline">把每一件小事折腾到底，就是大事业</div>
+  <div class="subhead">—— 本管理中心第 41 次全体（扩大）会议纪要摘登</div>
+
+  <div class="box">
+    <div class="box-h">工作动态<div class="more"><a href="#">更多&gt;&gt;</a></div></div>
+    <div class="box-b">
+      <ul class="newslist">
+        <li>▪ <a href="#">WineFox Desktop 通过 ComfyUI 工作流兼容性验收</a><span class="date">09-04</span></li>
+        <li>▪ <a href="#">鸣潮查分 Bot 圆满完成 S2 赛季版本适配任务</a><span class="date">09-02</span></li>
+        <li>▪ <a href="#">Minecraft 模组服实现连续稳定运行 300 天</a><span class="date">08-30</span></li>
+        <li>▪ <a href="#">Hi-Fi 鉴定中心完成第三批音源真伪抽样检测</a><span class="date">08-26</span></li>
+        <li>▪ <a href="#">关于推荐优秀容器参加"明星容器"评选的通知</a><span class="date">08-22</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="box-h">数据发布</div>
+    <div class="box-b">
+      <table class="dataTable">
+        <tr><th>指标名称</th><th>本季度</th><th>上季度</th><th>增幅</th></tr>
+        <tr><td>自托管服务在线（个）</td><td class="num">12</td><td class="num">10</td><td class="num">+20%</td></tr>
+        <tr><td>累计折腾时长（小时）</td><td class="num">1095</td><td class="num">1023</td><td class="num">+7%</td></tr>
+        <tr><td>无效Cookie清理（条）</td><td class="num">37</td><td class="num">12</td><td class="num">+208%</td></tr>
+        <tr><td>睡眠时间（分钟/晚）</td><td class="num">312</td><td class="num">356</td><td class="num">-12.4%</td></tr>
+      </table>
+      <p style="font-size:12px;color:#666;text-align:right;margin:6px 0 0">数据来源：折腾办统计科　审核：Aster 主任</p>
+    </div>
+  </div>
+</td>
+
+<td class="col" width="220">
+  <div class="box">
+    <div class="box-h">机构设置</div>
+    <div class="box-b">
+      <ul class="newslist">
+        <li><a href="#">办公室（总协调）</a></li>
+        <li><a href="#">NAS管理科</a></li>
+        <li><a href="#">鸣潮数据侦察处</a></li>
+        <li><a href="#">Minecraft事业部</a></li>
+        <li><a href="#">Hi-Fi音质鉴定中心</a></li>
+        <li><a href="#">反爬对抗领导小组</a></li>
+        <li><a href="#">作业统筹督导办公室</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="box-h">政策文件</div>
+    <div class="box-b">
+      <ul class="newslist">
+        <li><span class="date">09-03</span><a href="#"><span class="redtag">【试行】</span>MC服务器运维规程</a></li>
+        <li><span class="date">08-25</span><a href="#"><span class="redtag">【权威】</span>声骸权重管理办法</a></li>
+        <li><span class="date">08-11</span><a href="#"><span class="redtag">【草案】</span>深夜折腾整治条例</a></li>
+        <li><span class="date">07-30</span><a href="#"><span class="redtag">【全文】</span>代理池熔断实施细则</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="box-h">站内检索</div>
+    <div class="box-b" style="text-align:center">
+      <input type="text" style="width:90%;border:1px inset #999;padding:3px;font-size:12px" value="折腾">
+      <p><button class="btn">检 索</button></p>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="box-h">友情链接</div>
+    <div class="box-b" style="text-align:center">
+      <select class="friendlink">
+        <option>—— 请选择 ——</option>
+        <option>库街区（KuroBBS）</option>
+        <option>飞牛 fnOS 官网</option>
+        <option>Minecraft 中文维基</option>
+        <option>Wuthering.gg 数据站</option>
+        <option>Bilibili 说明书管理处</option>
+      </select>
+    </div>
+  </div>
+</td>
+
+</tr>
+</table>
+
+<div class="wanted-box" style="margin-bottom:12px">
+  <div class="box-h">⛔ 悬赏通缉公告<div class="more"><a href="contact.html">提供线索 »</a></div></div>
+  <div class="box-b">
+    <div class="wanted-notice">
+      <b>【折腾办通字〔2026〕第 7 号】</b>&nbsp;&nbsp;经本管理中心侦查查明，下列人员长期对中心主任实施各类坏事，性质恶劣，影响极坏。现予以公开通缉。欢迎广大群众积极提供线索，经查证属实的，奖励<b>炸鸡一份（可走报销流程）</b>。
+    </div>
+    <table class="wanted-grid" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td class="wanted-card">
+        <div class="wanted-photo"><img src="assets/images/wanted-jiangjun.png" alt="通缉犯 将军"><span class="wanted-stamp">通 缉</span></div>
+        <div class="wanted-name">将军 ♀</div>
+        <div class="wanted-trait">哆啦A梦头像 · 获赞 9999+ · 昼伏夜出</div>
+        <ul class="wanted-crime">
+          <li>长期霸榜点赞排行榜，涉嫌刷屏滋事；</li>
+          <li>作息与「作业优先」调度策略严重冲突；</li>
+          <li>对中心主任实施持续性精神攻击。</li>
+        </ul>
+        <div class="wanted-reward">悬赏：炸鸡一份 + 可乐一瓶</div>
+      </td>
+      <td class="wanted-card">
+        <div class="wanted-photo"><img src="assets/images/wanted-mystery.png" alt="通缉犯 佚名群友"><span class="wanted-stamp">通 缉</span></div>
+        <div class="wanted-name">佚名群友</div>
+        <div class="wanted-trait">QQ 34****41 · 面部已打码 · 获赞 939</div>
+        <ul class="wanted-crime">
+          <li>真实身份成谜，反侦察能力极强；</li>
+          <li>长期潜水潜望，涉嫌暗中观察；</li>
+          <li>曾于深夜发送不明链接。</li>
+        </ul>
+        <div class="wanted-reward">悬赏：薯片一包（袋装）</div>
+      </td>
+      <td class="wanted-card">
+        <div class="wanted-photo"><img src="assets/images/wanted-yezi.png" alt="通缉犯 椰子"><span class="wanted-stamp">通 缉</span></div>
+        <div class="wanted-name">椰子 ♀</div>
+        <div class="wanted-trait">QQ 2****27 · 头像为脚 · 24小时在线</div>
+        <ul class="wanted-crime">
+          <li>以脚为头像，公然挑衅本中心审美秩序；</li>
+          <li>长期保持在线，涉嫌实时监控主任动向；</li>
+          <li>对主任实施高频度精神打击。</li>
+        </ul>
+        <div class="wanted-reward">悬赏：奶茶半杯（走报销）</div>
+      </td>
+    </tr><tr>
+      <td class="wanted-card">
+        <div class="wanted-photo"><img src="assets/images/wanted-qunxiongxiong.png" alt="通缉犯 群凶凶"><span class="wanted-stamp">通 缉</span></div>
+        <div class="wanted-name">群凶凶</div>
+        <div class="wanted-trait">化名 Nianna Yu · QQ 21****33 · 金发出没 · 获赞 3517</div>
+        <ul class="wanted-crime">
+          <li>使用"Nianna Yu"等化名潜伏，身份存疑；</li>
+          <li>参与"把主任当笑话"专项行动，出力显著；</li>
+          <li>获赞数与实际活跃度严重不符，来源待查。</li>
+        </ul>
+        <div class="wanted-reward">悬赏：辣条一包（荤素自选）</div>
+      </td>
+      <td class="wanted-card super" colspan="2">
+        <div class="wanted-photo"><img src="assets/images/wanted-qianhui.png" alt="特级通缉犯 千絵"><span class="wanted-stamp super">特级通缉</span></div>
+        <div class="wanted-name super">千絵<span class="wanted-tag">特级罪犯</span></div>
+        <div class="wanted-trait">QQ 76****25 · 获赞 9999+ · 嚣张程度：在线都懒得隐身</div>
+        <ul class="wanted-crime">
+          <li><b>公然把中心主任当笑话嘲讽，性质极其恶劣，社会影响极大；</b></li>
+          <li>获赞 9999+，傲慢资本雄厚，气焰极其嚣张；</li>
+          <li>长期保持在线状态示威，拒不投案、拒不赔礼。</li>
+        </ul>
+        <div class="wanted-reward">悬赏升级：火锅一顿（主任亲自陪吃并致歉）</div>
+      </td>
+      <td></td>
+    </tr></table>
+    <p class="wanted-disclaimer">※ 本通缉名单纯属朋友间整活娱乐，不含任何真实指控。被通缉人员如主动投案（请主任喝奶茶），可立即撤销通缉并转入荣誉名单。</p>
+  </div>
+</div>
+
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td class="col" width="200" style="vertical-align:top">
+      <div class="box">
+        <div class="box-h">办事服务</div>
+        <div class="box-b">
+          <ul class="newslist">
+            <li>📁 <a href="#">容器故障在线报修</a></li>
+            <li>📁 <a href="#">角色面板刷新预约</a></li>
+            <li>📁 <a href="#">模组添加申请</a></li>
+            <li>📁 <a href="#">音源真伪鉴定申请</a></li>
+            <li>📁 <a href="#">开黑场地预约</a></li>
+          </ul>
+        </div>
+      </div>
+    </td>
+    <td class="col" style="padding:0 12px;vertical-align:top">
+      <div class="box">
+        <div class="box-h">领导之窗</div>
+        <div class="box-b">
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td class="leaderbox">
+              <div class="leaderph">【照片】</div>
+              <div class="leadername">Aster 同志</div>
+              <div class="leadertitle">中心主任 · 兼全部科室</div>
+            </td>
+            <td class="leaderbox">
+              <div class="leaderph">【照片】</div>
+              <div class="leadername">WineFox 同志</div>
+              <div class="leadertitle">AI绘画首席顾问</div>
+            </td>
+            <td class="leaderbox">
+              <div class="leaderph">【照片】</div>
+              <div class="leadername">喵喵喵 同志</div>
+              <div class="leadertitle">精神状态监督员</div>
+            </td>
+          </tr></table>
+        </div>
+      </div>
+    </td>
+    <td class="col" width="220" style="vertical-align:top">
+      <div class="box">
+        <div class="box-h">政民互动</div>
+        <div class="box-b">
+          <ul class="newslist">
+            <li>✉ <a href="#">我要留言</a></li>
+            <li>✉ <a href="#">举报深夜机器噪音</a></li>
+            <li>✉ <a href="#">申请加入开黑名单</a></li>
+            <li>✉ <a href="#">问题线索反映</a></li>
+          </ul>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table>
+</div>
+
+<div class="footer">
+  主办单位：Aster技术折腾事务管理中心　承办单位：折腾办秘书科<br>
+  备案号：樱町ICP备20260905号-1　│　公安备案：樱町公网安备 23333333333333号<br>
+  建议使用IE8.0以上浏览器或Chrome访问本网站，并将屏幕分辨率调整为1024×768以上<br>
+  <span class="star-row">★ ★ ★ ★ ★</span><br>
+  <a href="index.html">← 返回 Aster 的个人博客（普通版本）</a>
+</div>
+
+<div class="float-consult">
+  <div class="fc-h">在线咨询</div>
+  <div class="fc-b">
+    <span style="color:#CC0000;font-weight:bold">●</span> 主任在线<br>
+    QQ：<b>1982975523</b><br>
+    <a href="contact.html">给我留言</a>
+  </div>
+</div>
+
+</body>
+</html>
