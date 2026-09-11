@@ -141,17 +141,19 @@
     }
   } catch {}
 
-  /* ── 翻页动效「交棒」：站内链接离场时内容层上浮淡出 + 点击处
-     炸开一圈主题花瓣（复用换肤的花瓣系统），随后导航；
-     壁纸与页头跨页相同、全程不动，落地由 .rv 入场接力。
+  /* ── 翻页动效：支持跨文档 View Transition 时交给浏览器柔和交接；
+     否则 JS 交棒（内容层上浮淡出）再导航。点击处可炸开主题花瓣。
      纯锚点/外链/修饰键点击/减弱动态均不拦截 ── */
   function initPageTransitions() {
+    const supportsVT = typeof CSS !== "undefined" &&
+      CSS.supports("view-transition-name", "site-head");
+
     document.addEventListener("click", (e) => {
       const a = e.target.closest("a[href]");
       if (!a || a.dataset.nope !== undefined) return;
       if (e.defaultPrevented || a.target === "_blank") return;
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      if (!/\.html($|\?)/.test(a.getAttribute("href"))) return;   // 纯锚点不管
+      if (!/\.html($|\?)/.test(a.getAttribute("href"))) return;
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       if (document.documentElement.classList.contains("leaving")) { e.preventDefault(); return; }
 
@@ -159,10 +161,14 @@
       try { url = new URL(a.href, location.href); } catch { return; }
       if (url.origin !== location.origin) return;
 
+      burstAt(e.clientX || innerWidth / 2, e.clientY || 60, document.documentElement.dataset.theme || "light");
+
+      // 原生跨文档视图过渡：不拦截，让浏览器做页头连续 + 正文淡入淡出
+      if (supportsVT) return;
+
       e.preventDefault();
       document.documentElement.classList.add("leaving");
-      burstAt(e.clientX || innerWidth / 2, e.clientY || 60, document.documentElement.dataset.theme || "light");
-      setTimeout(() => { location.href = a.href; }, 185);
+      setTimeout(() => { location.href = a.href; }, 200);
     });
     addEventListener("pageshow", () => document.documentElement.classList.remove("leaving"));
   }

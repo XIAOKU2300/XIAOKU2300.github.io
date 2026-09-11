@@ -66,11 +66,11 @@
   --term-ok: #059669;
   --term-cyan: #0284C7;
 
-  --serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
-  --sans: "MiSans", "HarmonyOS Sans", "Source Han Sans SC", "Noto Sans SC",
-          -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --serif: "LXGW WenKai", "LXGW WenKai Screen", "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --sans: "LXGW WenKai", "LXGW WenKai Screen", "HarmonyOS Sans", "PingFang SC",
+          "Microsoft YaHei", "Noto Sans SC", sans-serif;
   --mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Courier New",
-          "MiSans", "Microsoft YaHei", monospace;   /* 中文回退 MiSans：等宽无汉字，别掉宋体 */
+          "LXGW WenKai", "Microsoft YaHei", monospace;
   --ease: cubic-bezier(.16, 1, .3, 1);   /* 松弛缓动：如水上浮叶 */
   --ssm: 12px; --smd: 16px;
   --slg: 24px; --sxl: 40px; --s2xl: 64px; --s3xl: 104px;
@@ -189,6 +189,7 @@ html {
   scroll-behavior: smooth; scrollbar-gutter: stable;
   overflow-x: clip;                      /* 装饰位移不产生横向滚动条 */
   -webkit-tap-highlight-color: transparent;
+  background: var(--paper);              /* 首帧与正文同色，避免翻页白闪 */
 }
 
 body {
@@ -1433,20 +1434,53 @@ main, .site-foot { position: relative; z-index: 1; }
 .ico { width: 15px; height: 15px; flex-shrink: 0; }
 
 /* ── 09 动效 ─────────────────────────────────────────────── */
-/* 注：不启用跨文档视图过渡（@view-transition）——Chromium 的过渡快照
-   可能丢失 backdrop-filter 模糊，壁纸上会看到"先糊后清"的闪变；
-   翻页动效由 JS 交棒（initPageTransitions）+ 下方入场接力完成 */
-/* 翻页离场「交棒」：内容层轻轻上浮淡出，壁纸与页头保持连续不动 */
+/* 跨文档视图过渡：页头连续、正文柔和交接，避免整页白闪。
+   过渡期间临时关掉毛玻璃，规避 Chromium 快照丢失 backdrop-filter。 */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: vt-fade-out .22s ease-in both;
+}
+::view-transition-new(root) {
+  animation: vt-fade-in .38s var(--ease) both;
+}
+@keyframes vt-fade-out {
+  to { opacity: 0; transform: translateY(-10px); }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+.site-head { view-transition-name: site-head; }
+::view-transition-old(site-head),
+::view-transition-new(site-head) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html:active-view-transition *,
+html:active-view-transition *::before,
+html:active-view-transition *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 旧浏览器兜底：JS 交棒离场 */
 html.leaving main,
 html.leaving .site-foot {
   opacity: 0;
   transform: translateY(-12px);
   pointer-events: none;
-  transition: opacity .18s ease-in, transform .18s ease-in;
+  transition: opacity .2s ease-in, transform .2s ease-in;
 }
-/* 站内翻页到达：入场走快节奏（直接进站保留完整演出） */
-.js.vt-nav .rv { animation-duration: .38s; }
-.js.vt-nav .fall-text .ch { animation-duration: .38s; animation-delay: calc(var(--i, 0) * 16ms); }
+/* 站内翻页到达：入场更整、更轻，减少「空一拍再弹」的闪感 */
+.js.vt-nav .rv {
+  animation-duration: .42s;
+  animation-delay: calc(var(--d, 0s) * .35);
+}
+.js.vt-nav .fall-text .ch { animation-duration: .36s; animation-delay: calc(var(--i, 0) * 10ms); }
 /* 入场：纯 CSS load 动画，播完回到自然状态，内容永远以可见收尾。
    动态插入的节点（筛选列表、正文段）插入即播，不依赖 JS 解锁。 */
 .js .rv { animation: rv-in .6s var(--ease) backwards; animation-delay: var(--d, 0s); }
