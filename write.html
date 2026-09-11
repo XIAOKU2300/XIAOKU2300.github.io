@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FAF7F1">
+  <meta name="robots" content="noindex">
+  <title>写文章 · Aster</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='6' fill='%232F55C9'/%3E%3Cellipse cx='16' cy='16' rx='13' ry='5' fill='none' stroke='%232F55C9' stroke-width='1.6' opacity='.55' transform='rotate(-24 16 16)'/%3E%3C/svg%3E">
+  <script>try{var t=localStorage.getItem("aster-theme");if(!t&&matchMedia("(prefers-color-scheme: dark)").matches)t="dark";if(t)document.documentElement.dataset.theme=t;document.documentElement.classList.add("js");}catch(e){}</script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-regular.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-bold.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/400.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5/500.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css?v=49">
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script defer blocking="render" src="assets/js/data.js?v=16"></script>
+  <script defer blocking="render" src="assets/js/main.js?v=43"></script>
+  <script defer src="assets/js/sky.js?v=1"></script>
+  <style>
+    .write-wrap { max-width: 1240px; margin: 0 auto; padding: 56px 26px 0; }
+    .write-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px; align-items: start; margin-top: 26px; }
+    .write-form { padding: 22px 24px 20px; display: grid; gap: 14px; }
+    .write-form label { display: grid; gap: 6px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; color: var(--muted); }
+    .write-form input, .write-form textarea, .write-form select {
+      font: inherit; font-size: 14.5px; color: var(--ink);
+      background: color-mix(in srgb, var(--paper) 70%, transparent);
+      border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+    .write-form input:focus, .write-form textarea:focus, .write-form select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .write-form textarea { min-height: 360px; font-family: var(--mono); font-size: 13px; line-height: 1.75; resize: vertical; }
+    .write-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .write-row3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+    .write-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 4px; }
+    .btn {
+      font-family: var(--mono); font-size: 12.5px; letter-spacing: .04em;
+      border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px;
+      color: var(--text-soft); transition: color .18s ease, border-color .18s ease, background .18s ease, transform .2s var(--ease);
+    }
+    .btn:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.primary:hover { transform: translateY(-1px); color: #fff; }
+    .btn:disabled { opacity: .5; pointer-events: none; }
+    .write-log { font-family: var(--mono); font-size: 11.5px; color: var(--muted); white-space: pre-wrap; min-height: 1.6em; }
+    .write-log.err { color: #F87171; }
+    .write-log.ok { color: var(--st-ok); }
+    .write-gate { padding: 18px 22px; display: grid; gap: 10px; }
+    .write-gate p { font-size: 13.5px; color: var(--muted); line-height: 1.8; }
+    .write-gate code { font-family: var(--mono); font-size: 12px; background: var(--code-bg); padding: 1px 6px; border-radius: 4px; }
+    .preview-glass { position: sticky; top: 84px; max-height: calc(100vh - 110px); overflow: auto; }
+    .fmt { display: inline-flex; gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    .fmt button { font-family: var(--mono); font-size: 11.5px; padding: 5px 11px; color: var(--muted); }
+    .fmt button.on { background: var(--accent-soft); color: var(--accent); }
+    @media (max-width: 900px) { .write-grid { grid-template-columns: 1fr; } .preview-glass { position: static; max-height: none; } .write-row3 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-page="write">
+  <a class="skip-link" href="#main">跳到正文</a>
+  <div class="progress" aria-hidden="true"></div>
+
+  <header class="site-head">
+    <div class="wrap head-inner">
+      <a class="logo" href="index.html">
+        <svg class="logo-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <circle cx="16" cy="16" r="6" fill="var(--blue)"/>
+          <ellipse cx="16" cy="16" rx="13" ry="5" stroke="var(--blue)" stroke-width="1.6" opacity=".5" transform="rotate(-24 16 16)"/>
+        </svg>
+        <b>Aster</b>
+      </a>
+      <nav class="menu" id="nav-links" aria-label="站内导航">
+        <a href="index.html" data-nav="home">首页</a>
+        <a href="blog.html" data-nav="blog">文章</a>
+        <a href="projects.html" data-nav="projects">项目</a>
+        <a href="about.html" data-nav="about">关于</a>
+        <a href="contact.html" data-nav="contact">联系</a>
+      </nav>
+      <div class="head-actions">
+        <button class="theme-btn" id="theme-btn" aria-label="切换主题">
+          <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="i-heart" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <svg class="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        </button>
+        <button class="menu-btn" id="menu-btn" aria-label="菜单">
+          <svg class="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          <svg class="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="write-wrap">
+      <p class="page-kicker mono">// 99 . ADMIN . COMPOSE</p>
+      <h1 class="page-h1">写文章</h1>
+      <p class="page-sub">在浏览器里写，点「发布」直接提交到 GitHub 仓库，Pages 会自动重新部署。没有 Token 的人只能看，发不出去。</p>
+
+      <div class="card write-gate" id="gate">
+        <label class="mono" style="display:grid;gap:6px;font-size:11.5px;letter-spacing:.06em;color:var(--muted)">GITHUB FINE-GRAINED TOKEN（只授权本仓库 Contents: Read &amp; Write）
+          <input id="token" type="password" placeholder="github_pat_…" autocomplete="off" style="font:inherit;font-family:var(--mono);font-size:13px;color:var(--ink);background:color-mix(in srgb,var(--paper) 70%,transparent);border:1px solid var(--line);border-radius:8px;padding:8px 11px">
+        </label>
+        <div class="write-actions">
+          <button class="btn" id="token-save">记住在这台电脑</button>
+          <button class="btn" id="token-forget">忘掉</button>
+          <span class="write-log" id="gate-log"></span>
+        </div>
+        <p>Token 只存在你浏览器的 localStorage，不进仓库、不上传到别处；发布 = 用它调用 GitHub API 往 <code>assets/js/data.js</code> 里插一篇。在 GitHub → Settings → Developer settings → Fine-grained tokens 生成，Repository access 只选这个仓库，Permissions 只给 Contents 的 Read and write。</p>
+      </div>
+
+      <div class="write-grid">
+        <form class="card write-form" id="form" autocomplete="off">
+          <div class="write-row">
+            <label>标题 <input id="title" required placeholder="例如：给 NAS 加了块 SSD 之后…"></label>
+            <label>SLUG（网址用，英文-数字-横线） <input id="slug" required pattern="[a-z0-9-]+" placeholder="nas-ssd-cache"></label>
+          </div>
+          <div class="write-row3">
+            <label>分类 <input id="category" list="cats" required placeholder="自托管"><datalist id="cats"></datalist></label>
+            <label>日期 <input id="date" type="date" required></label>
+            <label>阅读分钟 <input id="readTime" type="number" min="1" placeholder="自动估算"></label>
+          </div>
+          <label>标签（逗号分隔） <input id="tags" placeholder="fnOS, Docker, NAS"></label>
+          <label>摘要（列表卡片上显示，一两句） <textarea id="summary" style="min-height:64px;font-family:var(--sans);font-size:14px"></textarea></label>
+          <label>正文
+            <span class="fmt" role="group" aria-label="正文格式"><button type="button" class="on" data-fmt="md">Markdown</button><button type="button" data-fmt="html">HTML</button></span>
+            <textarea id="body" placeholder="## 起因&#10;&#10;那天晚上……"></textarea>
+          </label>
+          <div class="write-actions">
+            <button class="btn primary" type="submit" id="publish">发布到 GitHub</button>
+            <button class="btn" type="button" id="draft-save">存草稿（本机）</button>
+            <button class="btn" type="button" id="copy-snippet">复制 data.js 片段</button>
+            <span class="write-log" id="log"></span>
+          </div>
+        </form>
+
+        <div class="reading-glass preview-glass" id="preview">
+          <span class="eyebrow"><i class="dot"></i><span id="pv-cat">分类</span></span>
+          <h1 class="article-h1" id="pv-title">标题预览</h1>
+          <div class="article-meta"><span id="pv-date">2026-01-01</span><span id="pv-read">约 1 分钟</span></div>
+          <div class="beam-divider" aria-hidden="true"></div>
+          <div class="body" id="pv-body"><p style="color:var(--muted)">右边这块就是文章页的样子，边写边看。</p></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-foot">
+    <div class="wrap foot-inner">
+      <div class="foot-row">
+        <span>© <span id="year">2026</span> <span data-bind="name">Aster</span></span>
+        <div class="foot-links" id="foot-links"></div>
+      </div>
+      <p class="foot-note" id="foot-note"></p>
+    </div>
+  </footer>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      const REPO = "XIAOKU2300/XIAOKU2300.github.io", BRANCH = "main", PATH = "assets/js/data.js";
+      const $ = (s) => document.querySelector(s);
+      const F = {};
+      ["title", "slug", "category", "date", "readTime", "tags", "summary", "body", "token"].forEach((k) => { F[k] = $("#" + k); });
+      let fmt = "md";
+      const log = (el, msg, cls = "") => { el.textContent = msg; el.className = "write-log " + cls; };
+
+      // ── Token：只在本机 ──
+      try { F.token.value = localStorage.getItem("aster-gh-token") || ""; } catch {}
+      $("#token-save").onclick = () => { try { localStorage.setItem("aster-gh-token", F.token.value.trim()); log($("#gate-log"), "已记住", "ok"); } catch {} };
+      $("#token-forget").onclick = () => { try { localStorage.removeItem("aster-gh-token"); } catch {} F.token.value = ""; log($("#gate-log"), "已清除"); };
+
+      // ── 初始值 & 草稿 ──
+      const run = () => {
+        if (typeof SITE === "undefined") return setTimeout(run, 50);
+        $("#cats").innerHTML = [...new Set(SITE.posts.map((p) => p.category))].map((c) => `<option value="${c}">`).join("");
+        try { const d = JSON.parse(localStorage.getItem("aster-draft") || "null"); if (d) { Object.keys(d).forEach((k) => { if (F[k] && k !== "token") F[k].value = d[k]; }); fmt = d.fmt || "md"; syncFmt(); } } catch {}
+        if (!F.date.value) F.date.value = new Date().toLocaleDateString("sv-SE");
+        preview();
+      };
+      const syncFmt = () => document.querySelectorAll(".fmt button").forEach((b) => b.classList.toggle("on", b.dataset.fmt === fmt));
+      document.querySelectorAll(".fmt button").forEach((b) => b.onclick = () => { fmt = b.dataset.fmt; syncFmt(); preview(); });
+      const draft = () => { const d = {}; Object.keys(F).forEach((k) => { if (k !== "token") d[k] = F[k].value; }); d.fmt = fmt; try { localStorage.setItem("aster-draft", JSON.stringify(d)); } catch {} };
+      $("#draft-save").onclick = () => { draft(); log($("#log"), "草稿已存在本机", "ok"); };
+
+      // ── 预览 ──
+      const slugify = (t) => t.toLowerCase().replace(/[^a-z0-9一-龥]+/g, "-").replace(/[一-龥]/g, "").replace(/^-+|-+$/g, "").slice(0, 48);
+      F.title.addEventListener("input", () => { if (!F.slug.dataset.touched) F.slug.value = slugify(F.title.value); });
+      F.slug.addEventListener("input", () => { F.slug.dataset.touched = "1"; });
+      const html = () => fmt === "md" ? marked.parse(F.body.value) : F.body.value;
+      const estMinutes = () => Math.max(1, Math.round(F.body.value.replace(/<[^>]+>/g, "").length / 400));
+      function preview() {
+        $("#pv-title").textContent = F.title.value || "标题预览";
+        $("#pv-cat").textContent = F.category.value || "分类";
+        $("#pv-date").textContent = F.date.value;
+        $("#pv-read").textContent = `约 ${F.readTime.value || estMinutes()} 分钟`;
+        $("#pv-body").innerHTML = html() || `<p style="color:var(--muted)">右边这块就是文章页的样子，边写边看。</p>`;
+      }
+      let pt; document.getElementById("form").addEventListener("input", () => { clearTimeout(pt); pt = setTimeout(() => { preview(); draft(); }, 160); });
+
+      // ── 生成 data.js 里的一段 ──
+      const q = (s) => JSON.stringify(String(s));
+      const tpl = (s) => "`" + String(s).replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${") + "`";
+      function snippet() {
+        const tags = F.tags.value.split(/[,，]/).map((t) => t.trim()).filter(Boolean);
+        return `    {
+      slug: ${q(F.slug.value.trim())},
+      title: ${q(F.title.value.trim())},
+      category: ${q(F.category.value.trim())},
+      date: ${q(F.date.value)},
+      readTime: ${+F.readTime.value || estMinutes()},
+      summary: ${q(F.summary.value.trim())},
+      tags: [${tags.map(q).join(", ")}],
+      body: ${tpl("\n" + html().trim() + "\n")}
+    },
+`;
+      }
+      $("#copy-snippet").onclick = async () => { await navigator.clipboard.writeText(snippet()); log($("#log"), "片段已复制，可手动粘到 data.js 的 posts: [ 后面", "ok"); };
+
+      // ── 发布：GET → 插入 → PUT ──
+      const b64d = (b) => new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\n/g, "")), (c) => c.charCodeAt(0)));
+      const b64e = (s) => { const u = new TextEncoder().encode(s); let bin = ""; u.forEach((c) => { bin += String.fromCharCode(c); }); return btoa(bin); };
+      document.getElementById("form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const token = F.token.value.trim();
+        if (!token) return log($("#log"), "先填 Token（上面那格）", "err");
+        if (!F.body.value.trim()) return log($("#log"), "正文是空的", "err");
+        const btn = $("#publish"); btn.disabled = true;
+        const api = `https://api.github.com/repos/${REPO}/contents/${PATH}`;
+        const H = { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+        try {
+          log($("#log"), "读取仓库里的 data.js …");
+          const r = await fetch(`${api}?ref=${BRANCH}`, { headers: H });
+          if (!r.ok) throw new Error(`读取失败 ${r.status}（Token 权限或仓库名不对？）`);
+          const meta = await r.json();
+          let src = b64d(meta.content);
+          if (SITE.posts.some((p) => p.slug === F.slug.value.trim()) || src.includes(`slug: ${q(F.slug.value.trim())}`)) throw new Error("这个 slug 已经有了，换一个");
+          const anchor = "  posts: [\n";
+          const i = src.indexOf(anchor);
+          if (i < 0) throw new Error("data.js 里找不到 posts: [ 锚点");
+          src = src.slice(0, i + anchor.length) + snippet() + src.slice(i + anchor.length);
+          log($("#log"), "提交中 …");
+          const w = await fetch(api, { method: "PUT", headers: H, body: JSON.stringify({ message: `post: ${F.title.value.trim()}`, content: b64e(src), sha: meta.sha, branch: BRANCH }) });
+          if (!w.ok) throw new Error(`提交失败 ${w.status}：${(await w.text()).slice(0, 160)}`);
+          const j = await w.json();
+          log($("#log"), `已发布 ✓ ${j.commit.sha.slice(0, 7)}。Pages 大约 1–2 分钟后生效（data.js 有 10 分钟缓存，强刷一下）。`, "ok");
+          try { localStorage.removeItem("aster-draft"); } catch {}
+        } catch (err) {
+          log($("#log"), String(err.message || err), "err");
+        } finally { btn.disabled = false; }
+      });
+      run();
+    })();
+  </script>
+</body>
+</html>

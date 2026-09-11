@@ -155,6 +155,7 @@
       if (url.origin !== location.origin) return;
 
       burstAt(e.clientX || innerWidth / 2, e.clientY || 60, document.documentElement.dataset.theme || "light");
+      openRing(a.closest(".blog-card, .post-row, .proj-card, .now-list li, .post-nav a, .pn-title, .menu a") || a);
 
       // 原生跨文档视图过渡：不拦截，让浏览器做页头连续 + 正文淡入淡出
       if (supportsVT) {
@@ -187,6 +188,18 @@
       e.viewTransition.finished.finally(unflat);
       setTimeout(unflat, 1200);   // 兜底：过渡被跳过也不能让页头一直是平面底
     });
+  }
+
+  /* 点开动效：从被点的元素向外扩一圈光框，再交给页面过渡 */
+  function openRing(el) {
+    if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const r = el.getBoundingClientRect();
+    if (!r.width) return;
+    const ring = document.createElement("i");
+    ring.className = "open-ring";
+    ring.style.cssText = `left:${r.left - 4}px;top:${r.top - 4}px;width:${r.width + 8}px;height:${r.height + 8}px;border-radius:${Math.min(16, Math.max(6, parseFloat(getComputedStyle(el).borderRadius) || 10)) + 4}px`;
+    document.body.appendChild(ring);
+    setTimeout(() => ring.remove(), 600);
   }
 
   /* 共享元素命名：卡片 → post-card，标题 → post-title */
@@ -313,6 +326,7 @@
           heart: document.documentElement.dataset.theme === "pink" && i % 3 === 0
         });
       }
+      window.__skyPulse?.(e.clientX, e.clientY);
       const ring = document.createElement("i");
       ring.className = "click-ring";
       ring.style.left = e.clientX + "px";
@@ -494,14 +508,14 @@
       el.appendChild(o);
       el.scrollTop = el.scrollHeight;
     };
-    const PAGES = { home: "index.html", index: "index.html", blog: "blog.html", posts: "blog.html", projects: "projects.html", about: "about.html", contact: "contact.html", gov: "gov.html", "~": "index.html" };
+    const PAGES = { home: "index.html", index: "index.html", blog: "blog.html", posts: "blog.html", projects: "projects.html", about: "about.html", contact: "contact.html", gov: "gov.html", write: "write.html", "~": "index.html" };
     const go = (href) => { out(`→ ${href}`, "t-ok"); setTimeout(() => { location.href = href; }, 240); };
     const posts = () => sortedPosts();
     const CMDS = {
       help: () => out([
         "help            这份清单",
         "ls [posts]      列出页面 / 文章",
-        "cd &lt;page&gt;       跳转：home blog projects about contact gov",
+        "cd &lt;page&gt;       跳转：home blog projects about contact gov write",
         "cat &lt;n|slug&gt;    打开第 n 篇文章",
         "theme &lt;name&gt;    light / dark / pink / green",
         "whoami · uptime · date · neofetch · echo · clear",
@@ -1444,6 +1458,8 @@
       if (btn) { copyText(btn.dataset.copy, btn); return; }
       const nopeEl = e.target.closest("[data-nope]");
       if (nopeEl) dropX(e.clientX, e.clientY, nopeEl);
+      const ext = e.target.closest('a[target="_blank"]');
+      if (ext) openRing(ext.closest(".proj-card, .now-list li") || ext);
     });
 
     initPetals();

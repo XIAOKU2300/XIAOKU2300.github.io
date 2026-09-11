@@ -90,3 +90,9 @@ personal/
   「昼は学生、夜はオタク。」、关于页 GitHub 头像与「アスター」樱花色小注、
   文章 404 页「迷子になっちゃった…」
 - **无障碍**：键盘焦点可见、语义化标签、对比度达标
+
+## 写文章（write.html）
+
+打开 `write.html`，填一个只授权本仓库 **Contents: Read & Write** 的 GitHub fine-grained token（只存在你浏览器本地），
+左边写 Markdown / HTML、右边实时预览，点「发布到 GitHub」会把这篇插进 `assets/js/data.js` 的 `posts` 数组并提交，
+Pages 自动重新部署。没有 token 只能预览和复制片段。首页终端里 `cd write` 也能过去。

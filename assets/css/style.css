@@ -16,8 +16,8 @@
   --paper: #FAF7F1;              /* 羊皮纸白：微暖阅读底 */
   --ink: #26221E;                /* 深碳标题 */
   --text-soft: #4A453E;          /* 暗铅正文 */
-  --muted: #8B857B;              /* 次级冷灰 */
-  --faint: #B8B2A6;
+  --muted: #6F6A60;              /* 次级冷灰（≥4.5:1） */
+  --faint: #8E887C;              /* 小字也要看得清（≥3.5:1） */
   --line: rgba(43, 56, 84, .15);         /* 冷墨线：微蓝灰替代暖棕 */
   --line-soft: rgba(47, 85, 201, .08);   /* 蓝墨发丝分割线 */
   --accent: #0284C7;             /* 主特征色：天青（浅底取深一档保对比） */
@@ -36,7 +36,7 @@
   --st-ok: #34B78F; --st-mid: #D9A514; --st-dev: #0284C7;
 
   /* 玻璃卡片 / 悬停柔光 / 轮廓背景字 / 环境光晕 */
-  --glass-bg: rgba(255, 255, 255, .55);
+  --glass-bg: rgba(255, 255, 255, .62);
   --glass-line: rgba(47, 85, 201, .12);
   --glass-top: rgba(43, 56, 84, .14);
   --veil: rgba(38, 34, 30, .035);
@@ -116,7 +116,7 @@
   --menu-bg: rgba(11, 15, 25, .92);
   --st-ok: #34D399; --st-mid: #FBBF24; --st-dev: #38BDF8;
 
-  --glass-bg: rgba(255, 255, 255, .03);
+  --glass-bg: rgba(17, 24, 39, .55);
   --glass-line: rgba(255, 255, 255, .08);
   --glass-top: rgba(255, 255, 255, .15);
   --veil: rgba(255, 255, 255, .04);
@@ -124,7 +124,7 @@
   --dot-ink: rgba(255, 255, 255, .05);
   --glow-1: rgba(56, 189, 248, .16);   /* 冷冽青空：天蓝 */
   --glow-2: rgba(129, 140, 248, .13);  /* + 淡紫 */
-  --reader-bg: rgba(15, 20, 30, .65);  /* 微透冷蓝暗底 */
+  --reader-bg: rgba(15, 20, 30, .74);  /* 微透冷蓝暗底 */
   --link: #7DD3FC;                     /* 柔和薄荷青 */
 }
 
@@ -140,8 +140,8 @@
   --paper: #FDF0F5;
   --ink: #3D2233;
   --text-soft: #5C3A4D;
-  --muted: #A8798F;
-  --faint: #C9A3B8;
+  --muted: #8C5471;
+  --faint: #A97590;
   --line: rgba(120, 50, 85, .17);
   --line-soft: rgba(120, 50, 85, .09);
   --accent: #E8439B;
@@ -152,7 +152,7 @@
   --menu-bg: rgba(253, 240, 245, .92);
   --st-dev: #E8439B;
 
-  --glass-bg: rgba(255, 255, 255, .45);
+  --glass-bg: rgba(255, 255, 255, .55);
   --glass-line: rgba(120, 50, 85, .12);
   --glass-top: rgba(120, 50, 85, .18);
   --veil: rgba(232, 67, 155, .05);
@@ -266,11 +266,9 @@ svg { display: block; }
   view-transition-name: site-head;
 }
 html.vt-flat .site-head::before {
-  background: var(--paper);
   -webkit-backdrop-filter: none; backdrop-filter: none;
   transition: none;
 }
-html.vt-flat .site-head { border-bottom-color: transparent; }
 /* 毛玻璃背景放在伪元素上：backdrop-filter 若挂在 .site-head 本体，
    会成为内部 fixed 元素（移动端全屏菜单）的包含块，把菜单压扁 */
 .site-head::before {
@@ -1445,6 +1443,8 @@ html.vt-flat .site-head { border-bottom-color: transparent; }
   80% { transform: translateX(3px); }
 }
 
+/* 星层画布：三维纵深背景，最底层 */
+.sky { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; pointer-events: none; }
 /* 樱花画布：全站背景装饰层，不占文档流 */
 .petals {
   position: fixed; inset: 0; z-index: 50;
@@ -1463,8 +1463,8 @@ body::before {
   content: ""; position: fixed; inset: 0; z-index: 1; pointer-events: none;
   background:
     radial-gradient(var(--dot-ink) 1px, transparent 1.4px),
-    radial-gradient(900px 620px at var(--gp1), var(--glow-1), transparent 62%),
-    radial-gradient(820px 560px at var(--gp2), var(--glow-2), transparent 60%);
+    radial-gradient(900px 620px at var(--gp1), color-mix(in srgb, var(--glow-1) 60%, transparent), transparent 62%),
+    radial-gradient(820px 560px at var(--gp2), color-mix(in srgb, var(--glow-2) 60%, transparent), transparent 60%);
   background-size: 26px 26px, auto, auto;
 }
 main, .site-foot { position: relative; z-index: 1; }
@@ -1558,6 +1558,7 @@ html.booting .rv, html.booting .fall-text .ch { animation-play-state: paused; }
 /* 主题切换：从点击处扩开的圆形揭幕（新皮肤从指尖晕开）。
    旧快照静止在下，新快照用 clip-path 圆形放大盖上来；
    不支持 VT 时退回整页颜色渐变。 */
+html.theme-vt .site-head, html.theme-vt .menu a.active::after { view-transition-name: none; }
 html.theme-vt::view-transition-old(root) { animation: none; mix-blend-mode: normal; }
 html.theme-vt::view-transition-new(root) {
   animation: theme-reveal .62s cubic-bezier(.2, .8, .2, 1) both;
@@ -1593,6 +1594,18 @@ html.theme-anim *:not(svg):not(svg *) {
   transition-duration: .1s;
 }
 .tilt:active { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(.985); }
+
+/* 点开：从被点的卡片/按钮向外扩一圈光框，再由页面过渡接手 */
+.open-ring {
+  position: fixed; z-index: 1100; pointer-events: none;
+  border: 1.5px solid var(--accent); border-radius: 14px;
+  box-shadow: 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 0 24px color-mix(in srgb, var(--accent) 12%, transparent);
+  animation: open-ring .55s cubic-bezier(.2, .8, .2, 1) forwards;
+}
+@keyframes open-ring {
+  from { opacity: .9; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.08); }
+}
 
 /* 站徽：悬停时轨道转半圈，像一颗被拨动的小行星 */
 .logo-mark ellipse { transform-origin: 16px 16px; transition: transform .6s var(--ease); }
@@ -1743,7 +1756,7 @@ html.booting body { overflow: hidden; }
   .js .rv, .fall-text .ch { animation: none; opacity: 1; transform: none; }
   .fall-text .ch, .tilt { transition: none; }
   .skeleton .sk, .dot-live, .u-dot, .halo, .bg-komorebi.ready { animation: none; }
-  .spot { display: none; }
+  .spot, .open-ring { display: none; }
   .site-head, .menu a.active::after, body[data-page="post"] .reading-glass, body[data-page="post"] .article-h1 { view-transition-name: none; }
   .boot { display: none !important; }
   *, *::before, *::after {
@@ -1766,8 +1779,8 @@ html.booting body { overflow: hidden; }
   --paper: #F2F9F4;                /* 晨露雾绿底（插画加载前的底色） */
   --ink: #14281D;                  /* 深森黛绿：比死黑柔，比灰扎实 */
   --text-soft: #3C634E;            /* 苔绿正文 */
-  --muted: #5F826F;                /* 竹内灰绿次级 */
-  --faint: #7E9C8B;
+  --muted: #4E7560;                /* 竹内灰绿次级 */
+  --faint: #66887A;
   --line: rgba(20, 60, 38, .16);
   --line-soft: rgba(25, 90, 50, .12);    /* 绿墨发丝分割线 */
   --accent: #2BAE66;               /* 初夏叶绿 */
