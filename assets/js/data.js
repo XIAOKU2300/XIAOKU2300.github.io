@@ -153,6 +153,20 @@ const SITE = {
   /* ── 文章（新增一篇就复制一段改内容，追加到后面即可）──────── */
   posts: [
     {
+      slug: "do-not-stand-at-my-grave",
+      title: "不要在我的墓前哭泣：把一首诗排成一本小书",
+      category: "随笔",
+      date: "2026-09-16",
+      readTime: 2,
+      summary: "弗莱 1932 年写在购物纸袋上的那首诗，我没有写成笔记，而是排成了一本可以往下翻的书：风、雪、麦、雨、晨、鸟、星。",
+      tags: ["随笔", "排版", "HTML", "诗歌"],
+      body: `
+<p>玛丽·伊丽莎白·弗莱（Mary Elizabeth Frye）1932 年写下的这首诗，纸是从购物纸袋上撕下来的一块褐纸，边缘毛着。它没有被登记成财产，后来在葬礼、信和口头之间流传开，句子被抄改过许多次，留下来的总是那一句：<b>我不在那里。</b></p>
+<p>这次我没有把它写成笔记，而是排成了一本可以往下翻的小书：风、雪上的碎钻光、熟麦上的日光、秋雨、晨静、盘旋的鸟、夜里的星，每一节配一张图，中英对照。整站是手写 HTML / CSS，字体和图片都在本地，不依赖任何 CDN。</p>
+<p>它不适合当教程读。安静的时候往下翻就行。</p>
+<a class="proj-link" href="poem/do-not-stand-at-my-grave/">进入阅读页 →</a>`
+    },
+    {
       slug: "xw-echo-matrix-arch",
       title: "XutheringWavesUID（EchoMatrix）技术架构全解 · 精编",
       category: "源码剖析",
