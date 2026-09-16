@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Do Not Stand at My Grave and Weep — 莫立于我墓前涕泣</title>
+  <meta name="description" content="玛丽·伊丽莎白·弗莱（Mary Elizabeth Frye）经典悼亡诗《Do Not Stand at My Grave and Weep》的沉浸式文学艺术与哲学体验空间。探讨泛神论存在、生命循环与永恒呼吸。">
+  
+  <!-- Google Fonts Preconnect & Stylesheet -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400;1,600&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-liminal">
+  <!-- Living Atmospheric Canvas (Physics & Particle Engine) -->
+  <canvas id="atmosphereCanvas" aria-hidden="true"></canvas>
+
+  <!-- Soundscape Audio Visualizer Overlay -->
+  <div id="audioWaveform" class="audio-waveform-container" aria-hidden="true">
+    <span class="wave-bar"></span>
+    <span class="wave-bar"></span>
+    <span class="wave-bar"></span>
+    <span class="wave-bar"></span>
+    <span class="wave-bar"></span>
+  </div>
+
+  <!-- Navigation & Sensory Controls -->
+  <header class="masthead">
+    <div class="brand">
+      <a href="#prologue" class="brand-link" aria-label="返回页面顶部">
+        <span class="brand-sub">MARY ELIZABETH FRYE · 1932</span>
+        <span class="brand-title">A THOUSAND WINDS</span>
+      </a>
+    </div>
+
+    <!-- Quick Elemental Constellation Bar -->
+    <nav class="element-nav" aria-label="诗篇自然元素导航">
+      <button type="button" class="nav-elem-btn active" data-element="prologue" title="虚妄之墓 (The Cenotaph)">
+        <span class="nav-dot"></span><span class="nav-name">虚石</span>
+      </button>
+      <button type="button" class="nav-elem-btn" data-element="winds" title="千缕之风 (A Thousand Winds)">
+        <span class="nav-dot"></span><span class="nav-name">千风</span>
+      </button>
+      <button type="button" class="nav-elem-btn" data-element="snow" title="雪野碎钻 (Diamond Glints)">
+        <span class="nav-dot"></span><span class="nav-name">雪钻</span>
+      </button>
+      <button type="button" class="nav-elem-btn" data-element="grain" title="麦浪日光 (Ripened Grain)">
+        <span class="nav-dot"></span><span class="nav-name">麦阳</span>
+      </button>
+      <button type="button" class="nav-elem-btn" data-element="rain" title="温润秋雨 (Autumn Rain)">
+        <span class="nav-dot"></span><span class="nav-name">秋雨</span>
+      </button>
+      <button type="button" class="nav-elem-btn" data-element="birds" title="晨鸟凌空 (Circled Flight)">
+        <span class="nav-dot"></span><span class="nav-name">晨鸟</span>
+      </button>
+      <button type="button" class="nav-elem-btn" data-element="stars" title="夜空柔星 (Soft Stars)">
+        <span class="nav-dot"></span><span class="nav-name">夜星</span>
+      </button>
+      <button type="button" class="nav-elem-btn" data-element="epilogue" title="永在生命 (The Continuum)">
+        <span class="nav-dot"></span><span class="nav-name">永在</span>
+      </button>
+    </nav>
+
+    <!-- Sensory Master Controls -->
+    <div class="sensory-actions">
+      <!-- Audio Toggle Button -->
+      <button type="button" id="audioToggle" class="ctrl-btn" aria-label="开启或关闭生成式氛围天籁" aria-pressed="false" title="生成式自然音景 (Web Audio API)">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+          <path class="sound-wave sound-wave-1" d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          <path class="sound-wave sound-wave-2" d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+        <span class="ctrl-label" id="audioLabel">天籁静默</span>
+      </button>
+
+      <!-- Breath Guide Toggle -->
+      <button type="button" id="breathToggle" class="ctrl-btn" aria-label="开启同息呼吸冥想引导" aria-pressed="false" title="同息呼吸引导 (Respiratory Meditation)">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <circle cx="12" cy="12" r="9"/>
+          <circle cx="12" cy="12" r="4" stroke-dasharray="2 2"/>
+        </svg>
+        <span class="ctrl-label">共生呼吸</span>
+      </button>
+
+      <!-- Day / Dusk / Night Illumination Mode -->
+      <button type="button" id="illuminationToggle" class="ctrl-btn" aria-label="切换昼夜光感环境" title="切换光影意境">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <span class="ctrl-label" id="illuminationLabel">光影</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Interactive Breath Guidance Sphere (Fixed Overlay, Activated via Button) -->
+  <aside id="breathGuideOverlay" class="breath-guide-overlay hidden" aria-live="polite">
+    <div class="breath-container">
+      <div class="breath-orb-wrap">
+        <div class="breath-orb-outer"></div>
+        <div class="breath-orb-inner"></div>
+        <div class="breath-core"></div>
+      </div>
+      <div class="breath-phase-text" id="breathPhaseText">准备随诗呼吸</div>
+      <div class="breath-quote-text" id="breathQuoteText">“天地与我并生，而万物与我为一。”</div>
+      <button type="button" id="closeBreathBtn" class="breath-close-btn" aria-label="关闭呼吸引导">收起</button>
+    </div>
+  </aside>
+
+  <main id="mainContent" class="main-content">
+
+    <!-- ==========================================
+         SECTION 0: PROLOGUE & CENOTAPH DISSOLUTION
+         ========================================== -->
+    <section id="prologue" class="stanza-section prologue-section" data-scene="prologue">
+      <div class="section-backdrop"></div>
+      <div class="content-container prologue-layout">
+        
+        <div class="poem-header-meta">
+          <div class="eyebrow-tag">
+            <span class="tag-line"></span>
+            <span class="tag-text">AN ELEGIC CANTICLE ON PANTHEISM &amp; IMMORTALITY · 1932</span>
+            <span class="tag-line"></span>
+          </div>
+          <h1 class="main-title">
+            <span class="en-title">Do Not Stand at My Grave and Weep</span>
+            <span class="cn-title">莫立于我墓前涕泣</span>
+          </h1>
+          <p class="author-attribution">
+            <span class="author-name">Mary Elizabeth Frye</span>
+            <span class="author-date">(1905 – 2004)</span>
+            <span class="author-sep">·</span>
+            <span class="author-note">写于巴尔的摩一只粗糙的牛皮纸袋之上</span>
+          </p>
+        </div>
+
+        <div class="cenotaph-monolith-wrapper">
+          <div class="cenotaph-monolith">
+            <div class="monolith-texture"></div>
+            <div class="monolith-engraving">
+              <div class="latin-quote">“NON OMNIS MORIAR”</div>
+              <p class="engraved-verse en">
+                Do not stand at my grave and weep,<br>
+                I am not there. I do not sleep.
+              </p>
+              <div class="monolith-divider">✦</div>
+              <p class="engraved-verse cn">
+                莫立于我墓前涕泣，<br>
+                我不在彼处，亦未曾长眠。
+              </p>
+            </div>
+            <div class="monolith-dust-anchor" id="monolithDustAnchor"></div>
+          </div>
+        </div>
+
+        <div class="prologue-philosophical-marginalia">
+          <div class="marginalia-card">
+            <span class="marginalia-num">§ 01</span>
+            <h3 class="marginalia-heading">虚妄的石碑与被禁锢的幻相</h3>
+            <p class="marginalia-p">
+              人类的哀痛往往执着于一块立于泥土之上的石刻。我们为逝者划定经纬坐标，试图在方寸黄土之间留住他们曾经灼热的体温。然而，正如斯宾诺莎（Baruch Spinoza）所揭示的，生命并非局限于孤立形体的实体，而是无限神圣自然（Deus sive Natura）在时间长河里的一阵波动。
+            </p>
+            <p class="marginalia-p-sub">
+              当肉身归于尘土，存在并未终结，而是从狭隘的“定域”中完全解放，散逸为包围你的整片苍穹。
+            </p>
+          </div>
+        </div>
+
+        <div class="scroll-invitation">
+          <span class="scroll-instruction">轻触微风向下，步入自然六重相</span>
+          <div class="scroll-arrow-glyph">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="1.5">
+              <path d="M12 5v14M19 12l-7 7-7-7"/>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 1: THE WINDS (千缕之风)
+         ========================================== -->
+    <section id="winds" class="stanza-section stanza-winds" data-scene="winds">
+      <div class="content-container stanza-split-layout">
+        
+        <div class="stanza-verse-column">
+          <div class="element-badge">
+            <span class="badge-icon">༄</span>
+            <span class="badge-text">FIRST DISSOLUTION · THE WINDS</span>
+          </div>
+
+          <div class="verse-panel">
+            <blockquote class="poetic-blockquote">
+              <p class="verse-en display-verse">
+                I am a thousand winds that blow.
+              </p>
+              <p class="verse-cn display-verse-cn">
+                我是吹拂世间的千缕风。
+              </p>
+            </blockquote>
+
+            <div class="interactive-hint-pill">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M3 12h3M18 12h3M12 3v3M12 18v3"/>
+              </svg>
+              <span>在屏幕上滑动或轻移，激荡千风之气流场</span>
+            </div>
+          </div>
+
+          <div class="philosophical-marginalia-box">
+            <h4 class="marginalia-title">气之聚散 · 庄子《大宗师》</h4>
+            <p class="marginalia-body">
+              “人之生，气之聚也。聚则为生，散则为死……故万物一也。”风是不可见的存在，却无时无刻不在抚摸万物的轮廓。你所呼吸的每一口冷冽空气，皆是逝去者跨越千山万水的温柔拥抱。
+            </p>
+          </div>
+        </div>
+
+        <div class="stanza-visual-column">
+          <div class="element-experiential-card wind-card">
+            <div class="card-ambient-glow"></div>
+            <div class="card-inner">
+              <span class="card-kicker">ATMOSPHERIC PHENOMENON</span>
+              <h3 class="card-title">动能的非定域化</h3>
+              <p class="card-desc">
+                重力不再能囚禁飞散的分子。在对流层微弱的温差之间，千缕气流穿行于落叶的静脉与旅人的发梢。它不需要形体，因为整座大气的呼吸便是它的回响。
+              </p>
+              <div class="wind-vector-display" id="windVectorDisplay">
+                <span class="metric-label">当前风息向量</span>
+                <span class="metric-val" id="windVelocityVal">8.4 m/s · ENE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 2: SNOW GLINTS (雪野碎钻)
+         ========================================== -->
+    <section id="snow" class="stanza-section stanza-snow" data-scene="snow">
+      <div class="content-container stanza-split-layout reverse-layout">
+        
+        <div class="stanza-visual-column">
+          <div class="element-experiential-card snow-card">
+            <div class="card-ambient-glow"></div>
+            <div class="card-inner">
+              <span class="card-kicker">OPTICAL EPHEMERALITY</span>
+              <h3 class="card-title">光与冰晶的偶遇</h3>
+              <p class="card-desc">
+                雪原并非冰冷的静止。亿万枚六角冰晶在日光倾泻的角度里，瞬间诞生又瞬间熄灭璀璨的折射面。美正是因其不可占有而永恒。
+              </p>
+              <div class="crystal-interactive-plate" id="crystalPlate" title="点击或划过激荡折射光斑">
+                <div class="prism-spark"></div>
+                <div class="prism-spark"></div>
+                <div class="prism-spark"></div>
+                <span class="crystal-action-tip">触碰晶体，引燃瞬态微光</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stanza-verse-column">
+          <div class="element-badge">
+            <span class="badge-icon">❄</span>
+            <span class="badge-text">SECOND DISSOLUTION · THE SNOW</span>
+          </div>
+
+          <div class="verse-panel">
+            <blockquote class="poetic-blockquote">
+              <p class="verse-en display-verse">
+                I am the diamond glints on snow.
+              </p>
+              <p class="verse-cn display-verse-cn">
+                我是广袤雪野上碎钻的微光。
+              </p>
+            </blockquote>
+
+            <div class="interactive-hint-pill">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+                <polygon points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9 12 2"/>
+              </svg>
+              <span>光标临近之处，晶芒耀动生辉</span>
+            </div>
+          </div>
+
+          <div class="philosophical-marginalia-box">
+            <h4 class="marginalia-title">闪烁之相 · 现象学切片</h4>
+            <p class="marginalia-body">
+              碎钻的微光只存在于观测者的眼中。一旦移步换景，光芒便遁入未然。逝去者并非匿藏于泥土的阴影，而是在大自然与你目光相交的千分之一秒里，以纯粹光子的形式向你眨眼。
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 3: RIPENED GRAIN (麦浪日光)
+         ========================================== -->
+    <section id="grain" class="stanza-section stanza-grain" data-scene="grain">
+      <div class="content-container stanza-split-layout">
+        
+        <div class="stanza-verse-column">
+          <div class="element-badge">
+            <span class="badge-icon">🌾</span>
+            <span class="badge-text">THIRD DISSOLUTION · THE HARVEST</span>
+          </div>
+
+          <div class="verse-panel">
+            <blockquote class="poetic-blockquote">
+              <p class="verse-en display-verse">
+                I am the sunlight on ripened grain.
+              </p>
+              <p class="verse-cn display-verse-cn">
+                我是熟成麦穗上金色的暖阳。
+              </p>
+            </blockquote>
+
+            <div class="interactive-hint-pill">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="5"/>
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+              </svg>
+              <span>感受金黄麦穗在光子沐浴下的生息律动</span>
+            </div>
+          </div>
+
+          <div class="philosophical-marginalia-box">
+            <h4 class="marginalia-title">生命的饱满 · 德墨忒尔的神话</h4>
+            <p class="marginalia-body">
+              麦粒落在地里若是死了，便结出许多子粒来。金黄的熟成不是衰亡的序曲，而是大地蓄积了一整个夏天的爱与热量，向世人奉献最温柔的饱足。逝者化作了这份温暖的基底。
+            </p>
+          </div>
+        </div>
+
+        <div class="stanza-visual-column">
+          <div class="element-experiential-card grain-card">
+            <div class="card-ambient-glow"></div>
+            <div class="card-inner">
+              <span class="card-kicker">SOLAR SUSTENANCE</span>
+              <h3 class="card-title">光合作用的沉淀</h3>
+              <p class="card-desc">
+                八分钟前脱离太阳日冕的光子，穿过无垠的太空，在此刻轻柔地降落在摇曳的麦芒上。每一次触摸麦穗的沙沙声，都是能量转换的礼赞。
+              </p>
+              <div class="golden-hour-meter">
+                <div class="meter-bar"><div class="meter-fill" style="width: 78%;"></div></div>
+                <div class="meter-labels">
+                  <span>黎明微熹</span>
+                  <span class="active-label">金色熟成 (78%)</span>
+                  <span>暮色入定</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 4: AUTUMN RAIN (温润秋雨)
+         ========================================== -->
+    <section id="rain" class="stanza-section stanza-rain" data-scene="rain">
+      <div class="content-container stanza-split-layout reverse-layout">
+        
+        <div class="stanza-visual-column">
+          <div class="element-experiential-card rain-card">
+            <div class="card-ambient-glow"></div>
+            <div class="card-inner">
+              <span class="card-kicker">TERRESTRIAL RENEWAL</span>
+              <h3 class="card-title">湿润的大地循环</h3>
+              <p class="card-desc">
+                蒸发自深海的浩瀚水汽，在秋日的云层中凝聚、降落。雨不是天空的眼泪，而是大地重新饮下的生之甘露。泥土的芳香（Petrichor）正在唤醒沉睡的根系。
+              </p>
+              <div class="rain-ripple-sensor" id="rainRippleSensor">
+                <div class="sensor-ripple"></div>
+                <span class="sensor-text">静心听雨：雨滴归土，死即向生</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stanza-verse-column">
+          <div class="element-badge">
+            <span class="badge-icon">🌧</span>
+            <span class="badge-text">FOURTH DISSOLUTION · THE RAIN</span>
+          </div>
+
+          <div class="verse-panel">
+            <blockquote class="poetic-blockquote">
+              <p class="verse-en display-verse">
+                I am the gentle autumn rain.
+              </p>
+              <p class="verse-cn display-verse-cn">
+                我是苍茫暮野里温润的秋雨。
+              </p>
+            </blockquote>
+
+            <div class="interactive-hint-pill">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+              </svg>
+              <span>点触屏面，泛开秋水微澜</span>
+            </div>
+          </div>
+
+          <div class="philosophical-marginalia-box">
+            <h4 class="marginalia-title">悲悯之降 · 哀伤的柔化</h4>
+            <p class="marginalia-body">
+              暴烈之痛终将褪去，化为秋雨般的温润（Gentle）。它不冲毁万物，而是以细腻的湿度包裹每一片枯叶。在潮湿的苔藓与石阶上，告别被转化为一种无言的治愈。
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 5: BIRDS IN CIRCLED FLIGHT (晨鸟凌空)
+         ========================================== -->
+    <section id="birds" class="stanza-section stanza-birds" data-scene="birds">
+      <div class="content-container stanza-split-layout">
+        
+        <div class="stanza-verse-column">
+          <div class="element-badge">
+            <span class="badge-icon">🕊</span>
+            <span class="badge-text">FIFTH DISSOLUTION · THE RUSH</span>
+          </div>
+
+          <div class="verse-panel">
+            <blockquote class="poetic-blockquote">
+              <p class="verse-en display-verse">
+                When you awaken in the morning's hush<br>
+                I am the swift uplifting rush<br>
+                Of quiet birds in circled flight.
+              </p>
+              <p class="verse-cn display-verse-cn">
+                当你在晨曦的静谧中醒来，<br>
+                我是静默群鸟盘旋腾空的迅疾飞翼。
+              </p>
+            </blockquote>
+
+            <div class="interactive-hint-pill">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 14l8-6 8 6M4 10l8-6 8 6"/>
+              </svg>
+              <span>群鸟在此盘旋共舞；跟随光标升腾</span>
+            </div>
+          </div>
+
+          <div class="philosophical-marginalia-box">
+            <h4 class="marginalia-title">重力的豁免 · 晨曦与超拔</h4>
+            <p class="marginalia-body">
+              “晨曦的静谧（Morning's hush）”是黑夜与白昼交界的薄明时刻。在万籁俱寂中，忽有一群鸟振翅破空，形成完美的环形航线（Circled flight）。这不仅是飞翔，是对沉重宿命的终极超脱与破晓礼赞。
+            </p>
+          </div>
+        </div>
+
+        <div class="stanza-visual-column">
+          <div class="element-experiential-card birds-card">
+            <div class="card-ambient-glow"></div>
+            <div class="card-inner">
+              <span class="card-kicker">MURMURATION &amp; KINETICS</span>
+              <h3 class="card-title">协同律动之美</h3>
+              <p class="card-desc">
+                没有首领，没有强制，群鸟遵循着内在的默契在三维空间中画出流动的拓扑曲面。生命在升腾（Uplifting rush）中融为一体，个体在群体的流动中获得了永生。
+              </p>
+              <div class="flight-pattern-visualizer">
+                <div class="orbiting-dot dot-1"></div>
+                <div class="orbiting-dot dot-2"></div>
+                <div class="orbiting-dot dot-3"></div>
+                <span class="flight-text">Boids 鸟群动力学实时协同中</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 6: SOFT STARS (夜空柔星)
+         ========================================== -->
+    <section id="stars" class="stanza-section stanza-stars" data-scene="stars">
+      <div class="content-container stanza-split-layout reverse-layout">
+        
+        <div class="stanza-visual-column">
+          <div class="element-experiential-card stars-card">
+            <div class="card-ambient-glow"></div>
+            <div class="card-inner">
+              <span class="card-kicker">COSMIC VIGIL</span>
+              <h3 class="card-title">恒星核聚变的信笺</h3>
+              <p class="card-desc">
+                我们体内的每一个铁原子，都曾是某颗超新星爆炸时的熔炉产物。仰望夜空不是仰望虚无，而是仰望我们共同的源头与最后的归宿。星光穿越百亿光年，只为落在你的视网膜上。
+              </p>
+              <div class="constellation-hud" id="constellationHud">
+                <div class="constellation-name">天琴之引 · LYRA</div>
+                <div class="constellation-coord">RA 18h 36m / Dec +38°47′</div>
+                <span class="constellation-tip">划动鼠标，在星子之间编织引力光索</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stanza-verse-column">
+          <div class="element-badge">
+            <span class="badge-icon">✦</span>
+            <span class="badge-text">SIXTH DISSOLUTION · THE STARS</span>
+          </div>
+
+          <div class="verse-panel">
+            <blockquote class="poetic-blockquote">
+              <p class="verse-en display-verse">
+                I am the soft stars that shine at night.
+              </p>
+              <p class="verse-cn display-verse-cn">
+                当夜幕垂落，<br>
+                我是夜空里温柔闪耀的恒星。
+              </p>
+            </blockquote>
+
+            <div class="interactive-hint-pill">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="2"/>
+                <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+              </svg>
+              <span>静凝星夜，聆听远古的低语</span>
+            </div>
+          </div>
+
+          <div class="philosophical-marginalia-box">
+            <h4 class="marginalia-title">温柔的永恒 · 康德的敬畏</h4>
+            <p class="marginalia-body">
+              “位我上者，灿烂星空；道德律令，在我心中。”诗里的星辰被冠以“温柔（Soft）”之名。它不再是冰冷孤绝的天体物理存在，而是夜行者头顶永不熄灭的提灯，以亿万载的坚守宽慰尘世的孤单。
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 7: EPILOGUE & AFFIRMATION (永在之境)
+         ========================================== -->
+    <section id="epilogue" class="stanza-section stanza-epilogue" data-scene="epilogue">
+      <div class="content-container epilogue-layout">
+        
+        <div class="epilogue-monument">
+          <div class="sacred-circle-seal">
+            <svg viewBox="0 0 200 200" class="rotating-seal">
+              <path id="sealPath" d="M 100, 100 m -75, 0 a 75,75 0 1,1 150,0 a 75,75 0 1,1 -150,0" fill="none"/>
+              <text font-size="9" letter-spacing="3" fill="currentColor">
+                <textPath href="#sealPath">
+                  · I AM NOT THERE · I DID NOT DIE · THOUSAND WINDS · NEVER SLEEP ·
+                </textPath>
+              </text>
+            </svg>
+            <div class="seal-core-glyph">✦</div>
+          </div>
+
+          <blockquote class="epilogue-final-verse">
+            <p class="final-en">
+              Do not stand at my grave and cry;<br>
+              <strong>I am not there. I did not die.</strong>
+            </p>
+            <div class="verse-rule"></div>
+            <p class="final-cn">
+              莫立于我墓前痛哭；<br>
+              <strong>我不在彼处，我未曾死去。</strong>
+            </p>
+          </blockquote>
+        </div>
+
+        <div class="philosophical-triptych">
+          <div class="triptych-card">
+            <div class="card-roman">I</div>
+            <h4>存在的能量守恒</h4>
+            <p>
+              热力学第一定律昭示：宇宙中的能量既不能被创造，也不能被毁灭，只能从一种形式转化为另一种形式。那曾经爱过、笑过、思考过的意识能量，从未减少一个焦耳，它们只是重返了万物的洪流。
+            </p>
+          </div>
+          <div class="triptych-card">
+            <div class="card-roman">II</div>
+            <h4>全息式的陪伴</h4>
+            <p>
+              生者常以为“逝去”是一场分离，实则是一场泛在化的重逢。当你在风中深呼吸，你与他同在；当你在雪地看晨曦，你在分享他的视线。万象即是他，他即是万象。
+            </p>
+          </div>
+          <div class="triptych-card">
+            <div class="card-roman">III</div>
+            <h4>生者的慈悲释怀</h4>
+            <p>
+              这首诗不是对死亡的粉饰，而是对活着的宽宥。它请求生者昂起头颅，不再把时间耗散在与一块冰冷死石的对话中，而是走向旷野，以饱满的热烈去替逝者拥抱这美好的世界。
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 8: THE WHISPER TO THE VOID (寄意长风)
+         ========================================== -->
+    <section id="sanctuary" class="stanza-section sanctuary-section">
+      <div class="content-container sanctuary-layout">
+        
+        <div class="sanctuary-header text-center">
+          <span class="sub-heading">AN ELEVATION OF THOUGHT</span>
+          <h2 class="section-title">寄意长风 · 浮生念想录</h2>
+          <p class="section-subtitle">
+            若你心底有一位思念之人，或是一段已逝的岁月，不妨在此写下一句轻语。<br>
+            当字句化作流萤飞入长空，它便已成为风、雨、麦浪与星辰的一部分。
+          </p>
+        </div>
+
+        <!-- Input & Release Component -->
+        <div class="thought-crucible">
+          <form id="thoughtForm" class="thought-form" onsubmit="return false;">
+            <div class="input-wrapper">
+              <textarea id="thoughtInput" rows="3" maxlength="140" placeholder="写下一缕思念……（例如：那年山顶的雪化了，今朝你已行遍万重山）" aria-label="寄语内容"></textarea>
+              <div class="input-counter"><span id="charCount">0</span> / 140</div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" id="releaseThoughtBtn" class="release-btn">
+                <span class="btn-flare"></span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+                <span>化入微风，融归天地</span>
+              </button>
+            </div>
+          </form>
+
+          <div id="releaseAnimationAnchor" class="release-anchor"></div>
+        </div>
+
+        <!-- Anonymous Constellation of Memory Nodes -->
+        <div class="constellation-archive">
+          <div class="archive-header">
+            <span class="archive-title">飘荡在气流中的无名回响</span>
+            <span class="archive-meta">点击光芒拾取一段风中的留痕</span>
+          </div>
+
+          <div class="echoes-cluster" id="echoesCluster">
+            <!-- Dynamically populated or static seed items -->
+            <button type="button" class="echo-node" data-echo="去岁松山的大雪落尽，你在松针微颤的声音里。">
+              <span class="echo-dot"></span><span class="echo-snippet">去岁松山雪…</span>
+            </button>
+            <button type="button" class="echo-node" data-echo="母亲，我没有站在你的墓前，但我今天在菜市场挑了熟透的甜麦面包，就像你从前那样。">
+              <span class="echo-dot"></span><span class="echo-snippet">熟透的麦香…</span>
+            </button>
+            <button type="button" class="echo-node" data-echo="暴雨初歇的午后，阳台栀子花瓣上的水珠折射着云彩，那一瞬我听见了你的笑声。">
+              <span class="echo-dot"></span><span class="echo-snippet">栀子花水珠…</span>
+            </button>
+            <button type="button" class="echo-node" data-echo="今晨群雀掠过屋檐，风突然变得很暖。我知道你已经自由了。">
+              <span class="echo-dot"></span><span class="echo-snippet">晨雀掠屋檐…</span>
+            </button>
+            <button type="button" class="echo-node" data-echo="你曾怕黑，如今你成了万古夜空中最温柔的恒星。我再也不用为你担心。">
+              <span class="echo-dot"></span><span class="echo-snippet">夜空温柔星…</span>
+            </button>
+            <button type="button" class="echo-node" data-echo="世间再无坟茔能困住你，目之所及，皆是故人。">
+              <span class="echo-dot"></span><span class="echo-snippet">目之所及…</span>
+            </button>
+          </div>
+
+          <div id="echoCardModal" class="echo-card-display hidden">
+            <div class="echo-card-inner">
+              <div class="echo-card-quote-mark">“</div>
+              <p id="echoCardContent" class="echo-card-text">点击上方回响节点，聆听风中的留痕。</p>
+              <button type="button" id="closeEchoCard" class="echo-card-close">合上思念</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SECTION 9: CURATORIAL ESSAY & HISTORICAL ARCHIVE
+         ========================================== -->
+    <section id="curation" class="stanza-section curation-section">
+      <div class="content-container curation-layout">
+        
+        <header class="curation-header">
+          <span class="archive-kicker">HISTORICAL EXEGESIS &amp; PROVENANCE</span>
+          <h2 class="curation-title">牛皮纸袋上的悼亡：1932年的慈悲之火</h2>
+        </header>
+
+        <div class="curation-body">
+          <div class="curation-column">
+            <p class="dropcap-p">
+              一九三二年，美国马里兰州巴尔的摩。家庭主妇玛丽·伊丽莎白·弗莱（Mary Elizabeth Frye）的家中，借住着一位名为玛格丽特·施瓦茨科普夫（Margaret Schwarzkopf）的年轻德国犹太少女。少女的母亲在德国病危，然而由于当时反犹太主义阴霾在欧洲大陆迅速蔓延与家庭境遇的险恶，少女无法返回故土探望。不久，母亲溘然长逝，甚至因动荡局势而没有一座确切的墓茔可供凭吊。
+            </p>
+            <p>
+              玛格丽特陷入了漫长而冰冷的剧痛，她哭泣着倾诉自己连去母亲墓前献一朵花、掉一滴眼泪的机会都被剥夺了。深感恻隐之痛的弗莱在厨房整理采购杂物时，抓起了一只揉皱的棕色牛皮纸袋，在铅笔的沙沙声中一气呵成写下了十二行诗。
+            </p>
+          </div>
+
+          <div class="curation-column">
+            <p>
+              弗莱并没有为这首诗申请任何版权，也没有急于将其向文学期刊投递。她将这首诗抄写在数张卡片上，送给了玛格丽特和几位同样沉湎于丧亲之痛的友人。此后数十年间，这首诗如同一阵无形的暖风，在没有官方推手的情况下，凭借人们彼此的抚慰与抄录传遍了全世界。
+            </p>
+            <p>
+              从二战前线的军人随身信函，到戴安娜王妃的追思仪式，再到千千万万寻常家庭的告别守夜，人们一遍又一遍重温着那句斩钉截铁的告白：“<em>I am not there. I did not die.</em>” 弗莱将文学的最高尊严还给了凡人：它不为名垂青史，只为在深夜抚平一个伤心女孩的泪痕。
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       FOOTER & COLOPHON
+       ========================================== -->
+  <footer class="colophon-footer">
+    <div class="content-container footer-grid">
+      
+      <div class="colophon-cell brand-cell">
+        <h3 class="colophon-heading">A THOUSAND WINDS</h3>
+        <p class="colophon-sub">
+          基于玛丽·伊丽莎白·弗莱 1932 年同名诗作构建之沉浸式哲学艺术空间。<br>
+          致敬所有曾于微风、雪原、麦浪、秋雨、飞鸟与星海中与故人重逢的灵魂。
+        </p>
+        <div class="colophon-license">
+          <span>POETRY IN PUBLIC DOMAIN (1932)</span>
+          <span class="sep">·</span>
+          <span>ARTISANAL DIGITAL CRAFT</span>
+        </div>
+      </div>
+
+      <div class="colophon-cell typography-cell">
+        <h4 class="colophon-title">排版与美学规范</h4>
+        <ul class="colophon-list">
+          <li><strong>西文主标：</strong> Cinzel / Cormorant Garamond</li>
+          <li><strong>中文正文：</strong> Noto Serif SC (宋体典雅版式)</li>
+          <li><strong>自然声景：</strong> Web Audio API 自主物理合成</li>
+          <li><strong>动力流场：</strong> Simplex 向量流场 &amp; Reynolds Boids 算法</li>
+        </ul>
+      </div>
+
+      <div class="colophon-cell model-cell">
+        <div class="model-signature-badge">
+          <div class="badge-emboss-ring">
+            <span class="emboss-label">DESIGN &amp; ENGINEERING CODES</span>
+            <div class="model-name-text">【模型：Gemini3.8-flash-high】</div>
+            <span class="emboss-ver">PHILOSOPHICAL EXHIBITION EDITION</span>
+          </div>
+        </div>
+        <p class="model-curator-note">
+          以诗意拓扑重构空间，以自律极简摒弃浮华。<br>
+          言有尽而意无穷，死生契阔，万象与共。
+        </p>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom-bar">
+      <div class="content-container bottom-inner">
+        <span>DO NOT STAND AT MY GRAVE AND WEEP</span>
+        <span class="bottom-bullet">✦</span>
+        <span>I AM NOT THERE. I DID NOT DIE.</span>
+        <span class="bottom-bullet">✦</span>
+        <span class="curator-tag">【模型：Gemini3.8-flash-high】</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -153,6 +153,20 @@ const SITE = {
   /* ── 文章（新增一篇就复制一段改内容，追加到后面即可）──────── */
   posts: [
     {
+      slug: "a-thousand-winds",
+      title: "千缕风：同一首诗的另一个入口",
+      category: "随笔",
+      date: "2026-09-16",
+      readTime: 2,
+      summary: "同一个母题的第二版。这版把「天气」真的做成了天气——向量场、Boids 鸟群、Web Audio 现场合成的风，还有一段四拍呼吸引导。",
+      tags: ["随笔", "Canvas", "Web Audio", "诗歌"],
+      body: `
+<p>上一版是纸：褐纸、书页、图版，安静地往下翻。这一版把「天气」真的做成了天气——不是配图，而是浏览器里实时算出来的风。</p>
+<p>整站零依赖：风、雪野碎钻、麦穗摇曳、秋雨涟漪、鸟群协同、引力夜星，全是 Canvas 上的向量场与 Boids 在跑；环境音由 Web Audio API 现场合成，不加载任何音频文件。另外加了一段 4-4-6-2 的呼吸引导，和一个把文字拆成粒子吹散的祈念区。</p>
+<p>同一个母题，两种做法。上一版收着，这一版散开。</p>
+<a class="proj-link" href="poem/a-thousand-winds/">进入阅读页 →</a>`
+    },
+    {
       slug: "do-not-stand-at-my-grave",
       title: "不要在我的墓前哭泣：把一首诗排成一本小书",
       category: "随笔",
