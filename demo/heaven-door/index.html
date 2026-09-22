@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Heaven's Door | (CC-BY-NC-SA 4.0 by karminski-牙医)</title>
+  <style>
+    /* ==========================================================================
+       极简神圣冷灰美学与响应式排版 (Sacred Minimalist Monochromatic UI)
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0c0e12;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #e5e9f0;
+    }
+
+    #webgl-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* 顶部神圣感标题区 (Top Header Branding) */
+    .brand-header {
+      position: absolute;
+      top: 28px;
+      left: 32px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .brand-header h1 {
+      font-size: 24px;
+      font-weight: 300;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: #ffffff;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.45);
+      margin-bottom: 6px;
+    }
+
+    .brand-header .subtitle {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      color: #8c93a0;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .brand-header .license {
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: #636b7b;
+    }
+
+    /* 右侧折叠式交互控制抽屉 (Cinematic Control Deck) */
+    .control-deck {
+      position: absolute;
+      top: 28px;
+      right: 28px;
+      z-index: 10;
+      width: 324px;
+      background: rgba(16, 19, 26, 0.68);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .control-deck.minimized {
+      transform: translateX(calc(100% - 44px));
+      background: rgba(16, 19, 26, 0.4);
+    }
+
+    .deck-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      cursor: pointer;
+    }
+
+    .deck-header h2 {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #d8dde6;
+    }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: #8c93a0;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      transition: color 0.2s ease, transform 0.3s ease;
+    }
+
+    .control-deck.minimized .toggle-btn {
+      transform: rotate(180deg);
+    }
+
+    .deck-content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: opacity 0.2s ease;
+    }
+
+    .control-deck.minimized .deck-content {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* 滑块控件组合 */
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #a0a8b6;
+      letter-spacing: 0.08em;
+    }
+
+    .control-label-row span.val {
+      font-family: monospace;
+      color: #e2e8f0;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.12);
+      outline: none;
+      transition: background 0.2s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* 电影视角预设选择网格 */
+    .preset-title {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #717887;
+      margin-top: 4px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      color: #c9d1d9;
+      padding: 8px 10px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .preset-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    .preset-btn.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.5);
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.18);
+    }
+
+    /* 巡航开关按钮 */
+    .cruise-btn {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: #d1d5db;
+      padding: 9px 12px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .cruise-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.45);
+      color: #ffffff;
+    }
+
+    .cruise-btn.active {
+      background: rgba(255, 255, 255, 0.22);
+      border-style: solid;
+      border-color: #ffffff;
+      color: #ffffff;
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.22);
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #8b949e;
+      transition: background 0.3s ease;
+    }
+
+    .cruise-btn.active .pulse-dot {
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
+      animation: breathe 1.8s infinite ease-in-out;
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.3); }
+    }
+
+    /* 底部 HUD 引导 */
+    .bottom-hud {
+      position: absolute;
+      bottom: 24px;
+      left: 32px;
+      right: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .hud-guide {
+      display: flex;
+      gap: 20px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: #6e7686;
+      text-transform: uppercase;
+    }
+
+    .hud-guide span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-badge {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: #5d6371;
+      font-family: monospace;
+    }
+
+    /* 全屏快捷微按钮 */
+    .fs-toggle-btn {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      color: #9ca3af;
+      padding: 6px 10px;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .fs-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    /* 响应式移动端适配 */
+    @media (max-width: 768px) {
+      .brand-header {
+        top: 20px;
+        left: 20px;
+      }
+      .brand-header h1 {
+        font-size: 18px;
+      }
+      .control-deck {
+        top: auto;
+        bottom: 68px;
+        right: 16px;
+        width: 280px;
+      }
+      .bottom-hud {
+        bottom: 16px;
+        left: 20px;
+        right: 20px;
+      }
+      .hud-guide span:not(:first-child) {
+        display: none;
+      }
+    }
+  </style>
+
+  <!-- 引入稳定高效且纯净的 Three.js 核心库与 OrbitControls (含多 CDN 容灾 fallback) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    if (typeof THREE !== 'undefined' && !THREE.OrbitControls) {
+      document.write('<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');
+    }
+  </script>
+</head>
+<body>
+
+  <!-- WebGL 渲染宿主画布 -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- 极简神圣品牌标题 -->
+  <header class="brand-header">
+    <h1>Heaven's Door</h1>
+    <div class="subtitle">Volumetric Fog &amp; Sacred Vortex Tyndall Simulation</div>
+    <div class="license">(CC-BY-NC-SA 4.0 by karminski-牙医)</div>
+  </header>
+
+  <!-- 控制与参数调节抽屉 -->
+  <aside class="control-deck" id="controlDeck">
+    <div class="deck-header" id="deckToggleHeader">
+      <h2>Simulation Control</h2>
+      <button class="toggle-btn" id="toggleDeckBtn" title="折叠/展开面板">▼</button>
+    </div>
+    <div class="deck-content">
+      
+      <!-- 体积雾浓度 -->
+      <div class="control-group">
+        <div class="control-label-row">
+          <span>体积雾浓度 (Fog Density)</span>
+          <span class="val" id="val-density">1.35</span>
+        </div>
+        <input type="range" id="input-density" min="0.2" max="3.0" step="0.05" value="1.35">
+      </div>
+
+      <!-- 漩涡流速 -->
+      <div class="control-group">
+        <div class="control-label-row">
+          <span>漩涡演化流速 (Vortex Speed)</span>
+          <span class="val" id="val-vortex">1.00</span>
+        </div>
+        <input type="range" id="input-vortex" min="0.1" max="2.5" step="0.05" value="1.00">
+      </div>
+
+      <!-- 丁达尔强光强度 -->
+      <div class="control-group">
+        <div class="control-label-row">
+          <span>丁达尔光束强度 (God Rays)</span>
+          <span class="val" id="val-godray">2.60</span>
+        </div>
+        <input type="range" id="input-godray" min="0.5" max="5.5" step="0.1" value="2.60">
+      </div>
+
+      <!-- 前向散射因子 (HG Phase g) -->
+      <div class="control-group">
+        <div class="control-label-row">
+          <span>前向散射因子 (Phase G)</span>
+          <span class="val" id="val-phaseg">0.72</span>
+        </div>
+        <input type="range" id="input-phaseg" min="0.2" max="0.92" step="0.02" value="0.72">
+      </div>
+
+      <!-- 光尘微粒流速 -->
+      <div class="control-group">
+        <div class="control-label-row">
+          <span>神圣星尘流速 (Holy Embers)</span>
+          <span class="val" id="val-particle">1.00</span>
+        </div>
+        <input type="range" id="input-particle" min="0.0" max="2.5" step="0.1" value="1.00">
+      </div>
+
+      <!-- 电影机位预设 -->
+      <div class="preset-title">Cinematic Camera Presets</div>
+      <div class="preset-grid">
+        <button class="preset-btn active" data-view="ascending">仰望神迹</button>
+        <button class="preset-btn" data-view="descent">圣门俯瞰</button>
+        <button class="preset-btn" data-view="flank">侧翼卷流</button>
+        <button class="preset-btn" data-view="closeup">门心凝眸</button>
+      </div>
+
+      <!-- 自动慢速呼吸巡航 -->
+      <button class="cruise-btn" id="cruiseBtn">
+        <span class="pulse-dot"></span>
+        <span id="cruiseText">启动电影漫游巡航</span>
+      </button>
+
+    </div>
+  </aside>
+
+  <!-- 底部 HUD 引导 -->
+  <footer class="bottom-hud">
+    <div class="hud-guide">
+      <span>● 左键拖拽: 环视旋转</span>
+      <span>● 右键拖拽: 空间平移</span>
+      <span>● 滚轮滑动: 焦距推拉</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="hud-badge" id="hud-fps">RAYMARCH 56 STEPS | 60 FPS</span>
+      <button class="fs-toggle-btn" id="fsBtn">全屏 [F]</button>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       核心 WebGL 与图形学程序逻辑 (Three.js Engine & Custom Shaders)
+       ========================================================================== -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* --------------------------------------------------------------------------
+     * 1. 核心数学、流体力学与图形学参数配置 (Simulation Configuration)
+     * -------------------------------------------------------------------------- */
+    const CONFIG = {
+      fogDensity: 1.35,          // 雾气基础散射密度
+      vortexSpeed: 1.00,         // 漩涡与时间演变速度
+      godRayIntensity: 2.60,     // 丁达尔强光光束强度
+      scatteringG: 0.72,         // Henyey-Greenstein 前向散射不对称系数 g
+      particleSpeed: 1.00,       // 光尘微粒流速
+      maxSteps: 56,              // Raymarching 步进采样数量（兼顾极致画质与 60FPS 性能）
+      stairSteps: 38,            // 阶梯台阶数量
+      stairLength: 25.0,         // 阶梯纵深长度
+      stairHeight: 9.0,          // 阶梯总高度
+      stairWidth: 6.4,           // 阶梯踏步宽度
+      gateCenterY: 13.5,         // 门框中心高度
+      gateCenterZ: -14.0,        // 门框所在 Z 深度
+      gateWidth: 5.6,            // 门框外部宽度
+      gateHeight: 9.8,           // 门框外部高度
+      gateHoleW: 3.4,            // 门框通光镂空宽度
+      gateHoleH: 7.6,            // 门框通光镂空高度
+      lightSourcePos: new THREE.Vector3(0.0, 13.5, -15.8) // 圣光源坐标（门框深处偏后）
+    };
+
+    /* --------------------------------------------------------------------------
+     * 2. 渲染画布与 Three.js 核心初始化 (Renderer & Dual-Pass Targets)
+     * -------------------------------------------------------------------------- */
+    const canvas = document.getElementById('webgl-canvas');
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+
+    // 创建主渲染器：开启高精度色调映射与软阴影
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      powerPreference: 'high-performance',
+      alpha: false
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // 限制 DPR 避免移动端/高分屏过度消耗
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // 场景构建
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0c0e12); // 冷暗灰神圣背景基调
+
+    // 相机系统
+    const camera = new THREE.PerspectiveCamera(48, width / height, 0.4, 120.0);
+    camera.position.set(0.0, 3.2, 22.0); // 默认“仰望神迹”机位
+
+    // OrbitControls 交互控制器
+    const controls = new THREE.OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 2.0;
+    controls.maxDistance = 65.0;
+    controls.maxPolarAngle = Math.PI / 2 + 0.05; // 限制镜头不可穿入无限地底
+    controls.target.set(0.0, 7.5, -4.0);
+    controls.update();
+
+    // 渲染目标：包含深度纹理 (Scene Color Texture + Hardware Depth Texture)
+    // 这是实现场景几何体（台阶、门框）对体积雾和光束进行像素级精确遮挡的核心设施
+    const depthTexture = new THREE.DepthTexture(width, height);
+    depthTexture.type = THREE.UnsignedShortType; // 在全部 WebGL1/2 环境中拥有最优兼容性与性能
+
+    let sceneRenderTarget = new THREE.WebGLRenderTarget(width, height, {
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      format: THREE.RGBAFormat,
+      depthTexture: depthTexture,
+      depthBuffer: true
+    });
+
+    /* --------------------------------------------------------------------------
+     * 3. 场景几何体建模：神圣极简主义阶梯与天门 (Monolithic Architecture)
+     * -------------------------------------------------------------------------- */
+    const archGroup = new THREE.Group();
+    scene.add(archGroup);
+
+    // 材质：哑光冷灰微晶混凝土石材 (Matte Cool Gray Travertine / Basalt)
+    const stoneMaterial = new THREE.MeshStandardMaterial({
+      color: 0xc8ccd4,
+      roughness: 0.82,
+      metalness: 0.08,
+      flatShading: false
+    });
+
+    const darkStoneMaterial = new THREE.MeshStandardMaterial({
+      color: 0x9298a4,
+      roughness: 0.88,
+      metalness: 0.05
+    });
+
+    // 3.1 阶梯系统 (The Monumental Staircase)
+    // 阶梯从底部 (Z=11.0, Y=0.0) 倾斜向上延伸至天门圣坛 (Z=-14.0, Y=CONFIG.stairHeight)
+    const stepCount = CONFIG.stairSteps;
+    const stepDepth = CONFIG.stairLength / stepCount;
+    const stepHeight = CONFIG.stairHeight / stepCount;
+    const stepWidth = CONFIG.stairWidth;
+
+    const stairMasterGroup = new THREE.Group();
+    for (let i = 0; i < stepCount; i++) {
+      // 每级台阶采用 BoxGeometry 构造踏步与立面
+      const stepGeo = new THREE.BoxGeometry(stepWidth, stepHeight * 1.5, stepDepth * 1.1);
+      const stepMesh = new THREE.Mesh(stepGeo, stoneMaterial);
+      
+      const t = i / (stepCount - 1);
+      const curZ = THREE.MathUtils.lerp(11.0, -14.0 + stepDepth, t);
+      const curY = THREE.MathUtils.lerp(0.0 + stepHeight * 0.5, CONFIG.stairHeight - stepHeight * 0.5, t);
+
+      stepMesh.position.set(0.0, curY, curZ);
+      stepMesh.castShadow = true;
+      stepMesh.receiveShadow = true;
+      stairMasterGroup.add(stepMesh);
+    }
+    archGroup.add(stairMasterGroup);
+
+    // 3.2 阶梯两侧极简护墙/导轨 (Lateral Minimalist Balustrades)
+    const balustradeWidth = 0.5;
+    const balustradeHeight = 0.6;
+    const stairSlopeLen = Math.sqrt(CONFIG.stairLength * CONFIG.stairLength + CONFIG.stairHeight * CONFIG.stairHeight);
+    const stairAngle = Math.atan2(CONFIG.stairHeight, CONFIG.stairLength);
+
+    const balustradeGeo = new THREE.BoxGeometry(balustradeWidth, balustradeHeight, stairSlopeLen * 1.05);
+    
+    // 左侧护墙
+    const leftBalustrade = new THREE.Mesh(balustradeGeo, darkStoneMaterial);
+    leftBalustrade.position.set(-stepWidth * 0.5 - balustradeWidth * 0.5, CONFIG.stairHeight * 0.5 + balustradeHeight * 0.35, -1.5);
+    leftBalustrade.rotation.x = stairAngle;
+    leftBalustrade.castShadow = true;
+    leftBalustrade.receiveShadow = true;
+    archGroup.add(leftBalustrade);
+
+    // 右侧护墙
+    const rightBalustrade = leftBalustrade.clone();
+    rightBalustrade.position.x = stepWidth * 0.5 + balustradeWidth * 0.5;
+    archGroup.add(rightBalustrade);
+
+    // 3.3 底部前庭大广场基座 (The Grand Vestibule Podium)
+    const floorGeo = new THREE.BoxGeometry(45.0, 1.0, 45.0);
+    const floorMesh = new THREE.Mesh(floorGeo, new THREE.MeshStandardMaterial({
+      color: 0x1f2228,
+      roughness: 0.75,
+      metalness: 0.15
+    }));
+    floorMesh.position.set(0.0, -0.5, 18.0);
+    floorMesh.receiveShadow = true;
+    archGroup.add(floorMesh);
+
+    // 3.4 顶部圣坛平台 (Upper Dais Platform)
+    const daisGeo = new THREE.BoxGeometry(16.0, 2.0, 14.0);
+    const daisMesh = new THREE.Mesh(daisGeo, darkStoneMaterial);
+    daisMesh.position.set(0.0, CONFIG.stairHeight - 1.0, -18.0);
+    daisMesh.receiveShadow = true;
+    daisMesh.castShadow = true;
+    archGroup.add(daisMesh);
+
+    // 3.5 天堂之门门框 (The Heavenly Monolithic Doorframe)
+    const gateGroup = new THREE.Group();
+    gateGroup.position.set(0.0, CONFIG.gateCenterY, CONFIG.gateCenterZ);
+
+    const pillarW = (CONFIG.gateWidth - CONFIG.gateHoleW) * 0.5; // 立柱宽度
+    const pillarH = CONFIG.gateHeight;                           // 立柱高度
+    const gateD = 1.6;                                           // 门框厚度
+
+    const pillarGeo = new THREE.BoxGeometry(pillarW, pillarH, gateD);
+
+    // 左侧立柱
+    const leftPillar = new THREE.Mesh(pillarGeo, stoneMaterial);
+    leftPillar.position.set(-CONFIG.gateHoleW * 0.5 - pillarW * 0.5, 0.0, 0.0);
+    leftPillar.castShadow = true;
+    leftPillar.receiveShadow = true;
+    gateGroup.add(leftPillar);
+
+    // 右侧立柱
+    const rightPillar = new THREE.Mesh(pillarGeo, stoneMaterial);
+    rightPillar.position.set(CONFIG.gateHoleW * 0.5 + pillarW * 0.5, 0.0, 0.0);
+    rightPillar.castShadow = true;
+    rightPillar.receiveShadow = true;
+    gateGroup.add(rightPillar);
+
+    // 顶部巨石过梁 (Lintel)
+    const lintelH = pillarH - CONFIG.gateHoleH;
+    const lintelGeo = new THREE.BoxGeometry(CONFIG.gateWidth, lintelH, gateD);
+    const lintel = new THREE.Mesh(lintelGeo, stoneMaterial);
+    lintel.position.set(0.0, CONFIG.gateHoleH * 0.5 + lintelH * 0.5, 0.0);
+    lintel.castShadow = true;
+    lintel.receiveShadow = true;
+    gateGroup.add(lintel);
+
+    // 3.6 门深处神圣传送门实体发光体 (Portal Core Emitter Plane)
+    // 视觉上作为不可逼视的纯白圣光源泉
+    const portalCoreGeo = new THREE.PlaneGeometry(CONFIG.gateHoleW * 0.98, CONFIG.gateHoleH * 0.98);
+    const portalCoreMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide
+    });
+    const portalCoreMesh = new THREE.Mesh(portalCoreGeo, portalCoreMat);
+    portalCoreMesh.position.set(0.0, 0.0, -0.75); // 位于门洞偏后方
+    gateGroup.add(portalCoreMesh);
+
+    archGroup.add(gateGroup);
+
+    /* --------------------------------------------------------------------------
+     * 4. 灯光系统：立体雕塑光与阴影过渡 (Directional & Ambient Lighting)
+     * -------------------------------------------------------------------------- */
+    // 4.1 环境光与半球光：冷蓝天顶与深灰地面，确保细腻素描层次，无死黑
+    const hemiLight = new THREE.HemisphereLight(0xdce6f0, 0x181a1f, 0.55);
+    scene.add(hemiLight);
+
+    const ambientLight = new THREE.AmbientLight(0x282c34, 0.35);
+    scene.add(ambientLight);
+
+    // 4.2 主方向光：模拟从门框深处透射照向下方的神圣强光，塑造清晰硬朗的阶梯明暗交界
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    dirLight.position.set(CONFIG.lightSourcePos.x, CONFIG.lightSourcePos.y + 1.0, CONFIG.lightSourcePos.z);
+    dirLight.target.position.set(0.0, 2.0, 0.0);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 1.0;
+    dirLight.shadow.camera.far = 65.0;
+    dirLight.shadow.camera.left = -16;
+    dirLight.shadow.camera.right = 16;
+    dirLight.shadow.camera.top = 22;
+    dirLight.shadow.camera.bottom = -8;
+    dirLight.shadow.bias = -0.0004;
+    scene.add(dirLight);
+    scene.add(dirLight.target);
+
+    /* --------------------------------------------------------------------------
+     * 5. 漩涡流光微粒系统：神圣星尘/光尘 (Vortex Holy Embers & Dust Particles)
+     * -------------------------------------------------------------------------- */
+    // 设计理念：微粒从门内诞生，受到漩涡流场向外加速旋转并顺着阶梯下沉。
+    // 在穿入神圣丁达尔光束时由于剧烈散射而闪耀耀眼光芒，穿出光束后隐为幽静冷灰。
+    const PARTICLE_COUNT = 1800;
+    const particleGeo = new THREE.BufferGeometry();
+    const pPositions = new Float32Array(PARTICLE_COUNT * 3);
+    const pSeeds = new Float32Array(PARTICLE_COUNT * 4); // x: 初始半径, y: 旋转角速度, z: 垂直流动初相位, w: 寿命衰减
+    const pSizes = new Float32Array(PARTICLE_COUNT);
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      // 粒子在从门框 (Z=-14) 到阶梯底部 (Z=12) 沿线分布
+      const progress = Math.random();
+      const z = THREE.MathUtils.lerp(-15.5, 13.0, progress);
+      const stairY = THREE.MathUtils.lerp(CONFIG.stairHeight, 0.0, Math.min(Math.max((z + 14.0) / 25.0, 0.0), 1.0));
+      const y = stairY + Math.random() * 5.5 + 0.2;
+      const x = (Math.random() - 0.5) * (CONFIG.stairWidth * 1.3 + progress * 4.0);
+
+      pPositions[i * 3 + 0] = x;
+      pPositions[i * 3 + 1] = y;
+      pPositions[i * 3 + 2] = z;
+
+      pSeeds[i * 4 + 0] = Math.sqrt(x * x + (y - CONFIG.gateCenterY) * (y - CONFIG.gateCenterY)) + 0.1;
+      pSeeds[i * 4 + 1] = (Math.random() > 0.5 ? 1.0 : -1.0) * (0.8 + Math.random() * 1.5);
+      pSeeds[i * 4 + 2] = Math.random() * 100.0;
+      pSeeds[i * 4 + 3] = 0.5 + Math.random() * 0.8;
+
+      pSizes[i] = 16.0 + Math.random() * 32.0;
+    }
+
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(pPositions, 3));
+    particleGeo.setAttribute('aSeed', new THREE.BufferAttribute(pSeeds, 4));
+    particleGeo.setAttribute('aSize', new THREE.BufferAttribute(pSizes, 1));
+
+    // 自定义粒子着色器：完全手写物理漩涡运动与光锥散射响应
+    const particleMat = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: {
+        uTime: { value: 0 },
+        uSpeed: { value: CONFIG.particleSpeed },
+        uLightPos: { value: CONFIG.lightSourcePos },
+        uGateCenter: { value: new THREE.Vector3(0.0, CONFIG.gateCenterY, CONFIG.gateCenterZ) }
+      },
+      vertexShader: `
+        uniform float uTime;
+        uniform float uSpeed;
+        uniform vec3 uLightPos;
+        uniform vec3 uGateCenter;
+
+        attribute vec4 aSeed;
+        attribute float aSize;
+
+        varying vec3 vWorldPos;
+        varying float vGlow;
+
+        void main() {
+          vec3 pos = position;
+          float t = uTime * uSpeed * aSeed.w + aSeed.z;
+
+          // 1. 沿阶梯倾泻下流运动 (Cascade flow)
+          float zOffset = mod(t * 2.2, 28.0);
+          pos.z = -15.0 + zOffset;
+
+          // 阶梯表面基准高度
+          float s = clamp((pos.z + 14.0) / 25.0, 0.0, 1.0);
+          float stairY = mix(9.0, 0.0, s);
+
+          // 2. 门框出口处的强烈漩涡旋转场 (Portal Vortex Swirl)
+          float distToGate = abs(pos.z - uGateCenter.z);
+          float vortexInfluence = exp(-distToGate * distToGate / 18.0);
+          float angle = aSeed.y * (uTime * 1.4 + pos.z * 0.4) * vortexInfluence;
+          float cosA = cos(angle);
+          float sinA = sin(angle);
+
+          // 围绕门中心旋转
+          vec2 centeredXY = vec2(pos.x, pos.y - uGateCenter.y);
+          vec2 rotXY = vec2(
+            centeredXY.x * cosA - centeredXY.y * sinA,
+            centeredXY.x * sinA + centeredXY.y * cosA
+          );
+
+          pos.x = mix(pos.x, rotXY.x, vortexInfluence * 0.85);
+          pos.y = mix(stairY + sin(t * 1.5 + pos.x) * 1.2 + 1.2, rotXY.y + uGateCenter.y, vortexInfluence);
+
+          vWorldPos = pos;
+
+          // 3. 计算粒子是否落入神圣丁达尔光束孔径内部 (In-beam detection)
+          vec3 toLight = pos - uLightPos;
+          float tPortal = (-14.0 - uLightPos.z) / max(toLight.z, 0.001);
+          vec3 portalPt = uLightPos + toLight * tPortal;
+
+          float inBeamX = smoothstep(1.9, 1.2, abs(portalPt.x));
+          float inBeamY = smoothstep(4.0, 2.5, abs(portalPt.y - uGateCenter.y));
+          float inBeam = inBeamX * inBeamY * step(-14.0, pos.z);
+
+          // 光束内亮度暴增 4 倍
+          vGlow = mix(0.18, 1.0, inBeam);
+
+          vec4 viewPos = modelViewMatrix * vec4(pos, 1.0);
+          gl_Position = projectionMatrix * viewPos;
+          gl_PointSize = (aSize * (0.8 + 0.6 * inBeam)) * (30.0 / -viewPos.z);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vWorldPos;
+        varying float vGlow;
+
+        void main() {
+          // 生成柔和高斯光晕圆点
+          vec2 uv = gl_PointCoord - vec2(0.5);
+          float distSq = dot(uv, uv);
+          if (distSq > 0.25) discard;
+
+          float alpha = smoothstep(0.25, 0.0, distSq) * vGlow;
+          // 光束内微金色白光，光束外冷月灰白
+          vec3 emberColor = mix(vec3(0.75, 0.82, 0.95), vec3(1.0, 0.98, 0.92), vGlow);
+          gl_FragColor = vec4(emberColor, alpha * 0.7);
+        }
+      `
+    });
+
+    const particles = new THREE.Points(particleGeo, particleMat);
+    scene.add(particles);
+
+    /* --------------------------------------------------------------------------
+     * 6. 全屏深度感知光线步进体积着色器 (Depth-Aware Volumetric Raymarching Shader)
+     * -------------------------------------------------------------------------- */
+    // 渲染原理深入剖析：
+    // 方案采用双通道全屏正交 Quad。
+    // 在片元着色器中：
+    // 1. 利用逆视图投影矩阵将屏幕每个像素重建为世界空间视线射线 rd；
+    // 2. 从 Hardware Depth Buffer 中提取场景实体表面距离 sceneDist 作为光线步进终点；
+    // 3. 利用 Slab 法计算射线与阶梯/门框感兴趣包围盒 (AABB) 的进出交点 [tNear, tFar]，实现有效区段精准步进；
+    // 4. Jimenez Interleaved Gradient Noise 与 Bayer 抖动打破采样切片条纹 (Dither Jitter)；
+    // 5. 3D Simplex 噪声 + Domain Warping + 涡旋扭曲模拟流体干冰雾气向下奔腾；
+    // 6. Henyey-Greenstein (HG) 相函数与门框孔径投影掩膜计算丁达尔光柱向前强散射与软阴影；
+    // 7. Beer-Lambert 定律消光衰减与提前退出 (Early Ray Termination)。
+
+    const postScene = new THREE.Scene();
+    const postCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    const invViewProj = new THREE.Matrix4();
+
+    const volumetricShader = {
+      uniforms: {
+        tDiffuse: { value: null },
+        tDepth: { value: null },
+        uCameraPos: { value: new THREE.Vector3() },
+        uInvViewProj: { value: new THREE.Matrix4() },
+        uNear: { value: camera.near },
+        uFar: { value: camera.far },
+        uResolution: { value: new THREE.Vector2(width, height) },
+        uTime: { value: 0.0 },
+        // 交互调节参数
+        uFogDensity: { value: CONFIG.fogDensity },
+        uVortexSpeed: { value: CONFIG.vortexSpeed },
+        uGodRayIntensity: { value: CONFIG.godRayIntensity },
+        uScatteringG: { value: CONFIG.scatteringG },
+        // 门与光源几何常数
+        uGateCenter: { value: new THREE.Vector3(0.0, CONFIG.gateCenterY, CONFIG.gateCenterZ) },
+        uGateHole: { value: new THREE.Vector2(CONFIG.gateHoleW, CONFIG.gateHoleH) },
+        uLightPos: { value: CONFIG.lightSourcePos },
+        uLightColor: { value: new THREE.Vector3(1.0, 0.985, 0.95) }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = vec4(position.xy, 0.0, 1.0);
+        }
+      `,
+      fragmentShader: `
+        precision highp float;
+        precision highp int;
+
+        varying vec2 vUv;
+
+        uniform sampler2D tDiffuse;
+        uniform sampler2D tDepth;
+
+        uniform vec3 uCameraPos;
+        uniform mat4 uInvViewProj;
+        uniform float uNear;
+        uniform float uFar;
+        uniform vec2 uResolution;
+        uniform float uTime;
+
+        uniform float uFogDensity;
+        uniform float uVortexSpeed;
+        uniform float uGodRayIntensity;
+        uniform float uScatteringG;
+
+        uniform vec3 uGateCenter;
+        uniform vec2 uGateHole;
+        uniform vec3 uLightPos;
+        uniform vec3 uLightColor;
+
+        #define MAX_STEPS 56
+        #define MAX_RAY_DIST 65.0
+
+        // =========================================================================
+        // Jimenez Interleaved Gradient Noise (IGN) 蓝噪声抖动：消除步进带状伪影
+        // 工业界（如 Call of Duty, UE5）在体积渲染与接触阴影中公认最高质量抖动
+        // =========================================================================
+        float getIGN(vec2 screenPos) {
+          vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
+          return fract(magic.z * fract(dot(screenPos, magic.xy)));
+        }
+
+        // =========================================================================
+        // 高性能手写 3D Simplex 噪声 (Ashima Arts Fast Simplex Noise)
+        // =========================================================================
+        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+        vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+        float snoise(vec3 v) {
+          const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+          const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+
+          vec3 i  = floor(v + dot(v, C.yyy));
+          vec3 x0 = v - i + dot(i, C.xxx);
+
+          vec3 g = step(x0.yzx, x0.xyz);
+          vec3 l = 1.0 - g;
+          vec3 i1 = min(g.xyz, l.zxy);
+          vec3 i2 = max(g.xyz, l.zxy);
+
+          vec3 x1 = x0 - i1 + C.xxx;
+          vec3 x2 = x0 - i2 + C.yyy;
+          vec3 x3 = x0 - D.yyy;
+
+          i = mod289(i);
+          vec4 p = permute(permute(permute(
+                     i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                   + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                   + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+
+          float n_ = 0.142857142857;
+          vec3  ns = n_ * D.wyz - D.xzx;
+
+          vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+
+          vec4 x_ = floor(j * ns.z);
+          vec4 y_ = floor(j - 7.0 * x_);
+
+          vec4 x = x_ * ns.x + ns.yyyy;
+          vec4 y = y_ * ns.x + ns.yyyy;
+          vec4 h = 1.0 - abs(x) - abs(y);
+
+          vec4 b0 = vec4(x.xy, y.xy);
+          vec4 b1 = vec4(x.zw, y.zw);
+
+          vec4 s0 = floor(b0) * 2.0 + 1.0;
+          vec4 s1 = floor(b1) * 2.0 + 1.0;
+          vec4 sh = -step(h, vec4(0.0));
+
+          vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+          vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+
+          vec3 p0 = vec3(a0.xy, h.x);
+          vec3 p1 = vec3(a0.zw, h.y);
+          vec3 p2 = vec3(a1.xy, h.z);
+          vec3 p3 = vec3(a1.zw, h.w);
+
+          vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+          p0 *= norm.x;
+          p1 *= norm.y;
+          p2 *= norm.z;
+          p3 *= norm.w;
+
+          vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+          m = m * m;
+          return 42.0 * dot(m * m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+        }
+
+        // =========================================================================
+        // 射线与轴对齐包围盒 (AABB) 快速求交 (Slab Algorithm)
+        // 避免在无雾气的旷野空间进行无谓的性能损耗
+        // =========================================================================
+        bool intersectBox(vec3 ro, vec3 rd, vec3 boxMin, vec3 boxMax, out float tNear, out float tFar) {
+          vec3 invD = 1.0 / rd;
+          vec3 t0 = (boxMin - ro) * invD;
+          vec3 t1 = (boxMax - ro) * invD;
+          vec3 tmin = min(t0, t1);
+          vec3 tmax = max(t0, t1);
+          tNear = max(max(tmin.x, tmin.y), tmin.z);
+          tFar  = min(min(tmax.x, tmax.y), tmax.z);
+          return (tNear <= tFar && tFar > 0.0);
+        }
+
+        // =========================================================================
+        // Henyey-Greenstein 相函数：模拟参与介质的前向丁达尔光线强散射
+        // =========================================================================
+        float hgPhase(float cosTheta, float g) {
+          float g2 = g * g;
+          float denom = 1.0 + g2 - 2.0 * g * cosTheta;
+          if (denom <= 0.0) return 0.0;
+          return (1.0 / (4.0 * 3.14159265)) * ((1.0 - g2) / pow(denom, 1.5));
+        }
+
+        // =========================================================================
+        // 体积雾物理密度场：整合天门喷涌、阶梯干冰倾泻、漩涡力场扭转与 3D FBM 湍流
+        // =========================================================================
+        float sampleFogDensity(vec3 p, float time) {
+          // 1. 阶梯轴向映射：从门 (Z=-14.0, Y=9.0) 到地面 (Z=11.0, Y=0.0)
+          float s = clamp((p.z + 14.0) / 25.0, 0.0, 1.2);
+          float stairY = mix(9.0, 0.0, clamp(s, 0.0, 1.0));
+          float deltaY = p.y - stairY;
+
+          // 2. 空间宏观包络 (Spatial Envelope)
+          // 2.1 门内及门周爆发喷涌 (Portal Surge)
+          float gateDistZ = p.z - uGateCenter.z;
+          float gateSurge = exp(-gateDistZ * gateDistZ / 12.0) *
+                            smoothstep(uGateHole.x * 0.9, 0.2, abs(p.x)) *
+                            smoothstep(uGateHole.y * 0.8, 0.5, abs(p.y - uGateCenter.y));
+
+          // 2.2 顺阶梯贴地倾泻瀑布包络 (Cascading Blanket Falloff)
+          // 越往下游越呈扇形向两侧微展，厚度维持在台阶上方 1.5~3.0 单位
+          float lateralSpread = 3.2 + s * 2.8;
+          float lateralFalloff = exp(-(p.x * p.x) / (2.0 * lateralSpread * lateralSpread));
+          
+          float verticalThick = 1.2 + s * 1.5;
+          float verticalFalloff = exp(-(max(deltaY, 0.0) * max(deltaY, 0.0)) / (2.0 * verticalThick * verticalThick))
+                                  * smoothstep(-0.6, 0.15, deltaY);
+
+          float stairEnvelope = lateralFalloff * verticalFalloff * smoothstep(14.0, 10.0, p.z);
+          float totalEnvelope = max(gateSurge * 1.4, stairEnvelope);
+
+          if (totalEnvelope < 0.005) return 0.0;
+
+          // 3. 漩涡动力学坐标扭曲 (Vortex Velocity Field Twisting)
+          // 3.1 门孔主旋转涡 (Core Vortex Eye)
+          float rGate = length(vec2(p.x, p.y - uGateCenter.y));
+          float vortexZDecay = exp(-(gateDistZ * gateDistZ) / 16.0);
+          float angularVel = (1.8 / (rGate + 0.7)) * vortexZDecay;
+          float angle = angularVel * (time * 1.35 * uVortexSpeed) - p.z * 0.28;
+
+          float cosA = cos(angle);
+          float sinA = sin(angle);
+          vec2 twistedXY = vec2(
+            p.x * cosA - (p.y - uGateCenter.y) * sinA,
+            p.x * sinA + (p.y - uGateCenter.y) * cosA + uGateCenter.y
+          );
+
+          // 3.2 沿阶梯下倾卷云涡 (Bilateral Kelvin-Helmholtz Swirls)
+          float cascadeScroll = time * 1.6 * uVortexSpeed;
+          vec3 animP = vec3(twistedXY.x, twistedXY.y, p.z) + vec3(0.0, 0.45, -1.3) * cascadeScroll;
+
+          // 横向剪切卷须
+          animP.x += sin(animP.y * 1.2 + cascadeScroll) * 0.35 * sign(p.x);
+
+          // 4. 纯数学 3D Simplex 噪声 + Domain Warping (定义域扭曲呈现如流体干冰般丝滑卷须)
+          vec3 q = animP * 0.36;
+          vec3 warp = vec3(
+            snoise(q),
+            snoise(q + vec3(4.3, 1.7, 2.8)),
+            snoise(q - vec3(2.1, 5.2, 1.4))
+          );
+          vec3 pWarped = q + warp * 0.42;
+
+          // 3 层分形布朗运动 (FBM)
+          float n0 = snoise(pWarped);
+          float n1 = snoise(pWarped * 2.08 + vec3(0.0, time * 0.4, 0.0));
+          float n2 = snoise(pWarped * 4.15);
+          float fbm = n0 * 0.55 + n1 * 0.30 + n2 * 0.15;
+
+          // 密度阈值对比重映射
+          float noiseDensity = smoothstep(-0.25, 0.75, fbm);
+
+          return totalEnvelope * noiseDensity * uFogDensity;
+        }
+
+        // =========================================================================
+        // 圣光投影与门框孔径遮蔽计算 (God Rays Aperture Shadowing)
+        // 解析级计算门框镂空投影光锥，实现刀锋般分明的丁达尔光束与软半影
+        // =========================================================================
+        float calcApertureLightMask(vec3 p) {
+          vec3 toLight = p - uLightPos;
+          if (toLight.z <= 0.01) return 0.0; // 处于光源后方
+
+          // 光线穿过门框平面 (Z = -14.0) 的投影交点
+          float tPortal = (-14.0 - uLightPos.z) / toLight.z;
+          vec3 portalPt = uLightPos + toLight * tPortal;
+
+          // 门框孔径边缘软阴影衰减 (Knife-edge soft diffraction)
+          float halfW = uGateHole.x * 0.5;
+          float halfH = uGateHole.y * 0.5;
+
+          float maskX = smoothstep(halfW * 1.08, halfW * 0.88, abs(portalPt.x));
+          float maskY = smoothstep(halfH * 1.06, halfH * 0.86, abs(portalPt.y - uGateCenter.y));
+
+          // 仅在前向照射并穿出门框孔径时照亮
+          return maskX * maskY * step(-14.0, p.z);
+        }
+
+        // =========================================================================
+        // ACES Filmic 高动态范围色调映射：呈现高光滚降与神圣纯白辉光
+        // =========================================================================
+        vec3 ACESFilm(vec3 x) {
+          float a = 2.51;
+          float b = 0.03;
+          float c = 2.43;
+          float d = 0.59;
+          float e = 0.14;
+          return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+        }
+
+        // =========================================================================
+        // 主片元着色器：光线步进积分与合成
+        // =========================================================================
+        void main() {
+          // 1. 读取场景表面原色与深度值
+          vec4 sceneColor = texture2D(tDiffuse, vUv);
+          float depthVal = texture2D(tDepth, vUv).r;
+
+          // 2. 从屏幕 NDC 坐标反推世界空间视线射线 (Ray Reconstruction)
+          vec4 ndcNear = vec4(vUv * 2.0 - 1.0, -1.0, 1.0);
+          vec4 ndcFar  = vec4(vUv * 2.0 - 1.0,  1.0, 1.0);
+
+          vec4 worldNear = uInvViewProj * ndcNear;
+          worldNear /= worldNear.w;
+
+          vec4 worldFar = uInvViewProj * ndcFar;
+          worldFar /= worldFar.w;
+
+          vec3 ro = uCameraPos;
+          vec3 rd = normalize(worldFar.xyz - worldNear.xyz);
+
+          // 3. 计算实心几何体表面的世界空间距离 (Scene Depth Hit Distance)
+          float sceneDist = MAX_RAY_DIST;
+          if (depthVal < 0.99999) {
+            vec4 ndcDepth = vec4(vUv * 2.0 - 1.0, depthVal * 2.0 - 1.0, 1.0);
+            vec4 worldHit = uInvViewProj * ndcDepth;
+            worldHit /= worldHit.w;
+            sceneDist = length(worldHit.xyz - ro);
+          }
+
+          // 4. 与体积雾感兴趣包围盒 (AABB) 快速求交
+          vec3 boxMin = vec3(-12.0, -1.0, -19.5);
+          vec3 boxMax = vec3( 12.0, 24.0,  16.0);
+
+          float tBoxNear, tBoxFar;
+          bool hitBox = intersectBox(ro, rd, boxMin, boxMax, tBoxNear, tBoxFar);
+
+          if (!hitBox || tBoxFar <= 0.0) {
+            // 视线完全不经过体积区域，直接输出场景原色
+            gl_FragColor = vec4(ACESFilm(sceneColor.rgb), 1.0);
+            return;
+          }
+
+          float tStart = max(tBoxNear, uNear);
+          float tEnd = min(tBoxFar, sceneDist);
+
+          if (tStart >= tEnd) {
+            gl_FragColor = vec4(ACESFilm(sceneColor.rgb), 1.0);
+            return;
+          }
+
+          // 5. 光线步进积分初始化 (Raymarching Loop Initialization)
+          float totalRayDist = tEnd - tStart;
+          float stepSize = totalRayDist / float(MAX_STEPS);
+
+          // Jimenez IGN 蓝噪声抖动偏移，破除带状伪影
+          float dither = getIGN(gl_FragCoord.xy);
+          float t = tStart + stepSize * dither;
+
+          float transmittance = 1.0;
+          vec3 accumScattering = vec3(0.0);
+          const float extinctionCoeff = 0.85;
+
+          // 圣门微脉动圣光呼吸 (Divine Breathing Pulse)
+          float lightPulse = 1.0 + 0.06 * sin(uTime * 1.8) + 0.03 * cos(uTime * 3.4);
+
+          // 6. 体积积分主循环 (Radiative Transfer Integration)
+          for (int i = 0; i < MAX_STEPS; i++) {
+            if (t >= tEnd) break;
+
+            vec3 p = ro + rd * t;
+            float density = sampleFogDensity(p, uTime);
+
+            if (density > 0.002) {
+              // 6.1 光源入射方向与距离反比衰减
+              vec3 toLight = p - uLightPos;
+              float distToLight = length(toLight);
+              vec3 lDir = toLight / distToLight;
+
+              // 距离衰减
+              float distAtten = 1.0 / (1.0 + 0.012 * distToLight * distToLight);
+
+              // 6.2 门框孔径遮蔽 (丁达尔光柱的核心投影)
+              float apertureMask = calcApertureLightMask(p);
+
+              // 6.3 Henyey-Greenstein 前向强散射
+              float cosTheta = dot(rd, lDir);
+              float phase = hgPhase(cosTheta, uScatteringG);
+
+              // 入射光辐射度：主光束丁达尔强光 + 环境漫散射基底
+              float godRayRadiance = uGodRayIntensity * apertureMask * phase * distAtten * lightPulse;
+              
+              // 雾气的乳白质感：光柱内偏微暖纯白，环境背阴处偏冷月银灰
+              vec3 localFogColor = mix(vec3(0.82, 0.86, 0.92), uLightColor, smoothstep(0.05, 0.6, apertureMask));
+              float ambientRadiance = 0.22 * (0.6 + 0.4 * smoothstep(-1.0, 6.0, p.y));
+
+              vec3 inScatterLight = localFogColor * (godRayRadiance + ambientRadiance) * density;
+
+              // 6.4 Beer-Lambert 定律消光衰减
+              float stepTau = extinctionCoeff * density * stepSize;
+              float stepTransmittance = exp(-stepTau);
+
+              // 能量守恒单步散射积分解析形式
+              accumScattering += transmittance * inScatterLight * ((1.0 - stepTransmittance) / max(extinctionCoeff * density, 0.001));
+              transmittance *= stepTransmittance;
+
+              // 性能优化：当光线透射率低于 1.5% 时提前退出
+              if (transmittance < 0.015) {
+                transmittance = 0.0;
+                break;
+              }
+            }
+
+            t += stepSize;
+          }
+
+          // 7. 圣门耀目神圣泛光 (Atmospheric Portal Sun-Glare)
+          // 当镜头正对门框发光面时，叠加纯净的镜头光晕
+          vec3 toGate = normalize(uGateCenter - ro);
+          float glareAngle = max(dot(rd, toGate), 0.0);
+          float glare = pow(glareAngle, 72.0) * 0.42 * lightPulse * step(-14.5, uGateCenter.z);
+
+          // 8. 场景与体积雾光线最终合成与电影级色调映射 (Color Blending & ACES Tone Mapping)
+          vec3 finalColor = sceneColor.rgb * transmittance + accumScattering + vec3(glare * 0.9, glare * 0.95, glare);
+
+          gl_FragColor = vec4(ACESFilm(finalColor), 1.0);
+        }
+      `
+    };
+
+    const postMaterial = new THREE.ShaderMaterial(volumetricShader);
+    const postQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), postMaterial);
+    postScene.add(postQuad);
+
+    /* --------------------------------------------------------------------------
+     * 7. 电影级镜头调度与视角预设系统 (Cinematic Camera System)
+     * -------------------------------------------------------------------------- */
+    const PRESETS = {
+      ascending: {
+        pos: new THREE.Vector3(0.0, 2.6, 20.5),
+        target: new THREE.Vector3(0.0, 8.5, -4.0),
+        desc: "仰望神迹 (Ascending Gaze)"
+      },
+      descent: {
+        pos: new THREE.Vector3(0.0, 18.2, -19.5),
+        target: new THREE.Vector3(0.0, 4.0, 3.0),
+        desc: "圣门俯瞰 (Heavenly Descent)"
+      },
+      flank: {
+        pos: new THREE.Vector3(15.5, 9.0, 3.5),
+        target: new THREE.Vector3(-1.0, 7.0, -6.0),
+        desc: "侧翼卷流 (Flank Stream)"
+      },
+      closeup: {
+        pos: new THREE.Vector3(0.0, 12.8, -6.5),
+        target: new THREE.Vector3(0.0, 13.2, -14.0),
+        desc: "门心凝眸 (Ethereal Close-up)"
+      }
+    };
+
+    let isTransitioning = false;
+    let transitionProgress = 0;
+    let camStartPos = new THREE.Vector3();
+    let camEndPos = new THREE.Vector3();
+    let camStartTarget = new THREE.Vector3();
+    let camEndTarget = new THREE.Vector3();
+
+    function switchCameraView(viewKey) {
+      const preset = PRESETS[viewKey];
+      if (!preset) return;
+
+      camStartPos.copy(camera.position);
+      camEndPos.copy(preset.pos);
+      camStartTarget.copy(controls.target);
+      camEndTarget.copy(preset.target);
+
+      transitionProgress = 0.0;
+      isTransitioning = true;
+
+      // 更新按钮 UI 状态
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-view') === viewKey);
+      });
+    }
+
+    // 自动巡航呼吸漫游模式
+    let autoCruise = false;
+    const cruiseBtn = document.getElementById('cruiseBtn');
+    const cruiseText = document.getElementById('cruiseText');
+
+    cruiseBtn.addEventListener('click', () => {
+      autoCruise = !autoCruise;
+      cruiseBtn.classList.toggle('active', autoCruise);
+      cruiseText.textContent = autoCruise ? "电影漫游巡航中 [点击停止]" : "启动电影漫游巡航";
+      if (autoCruise) isTransitioning = false;
+    });
+
+    /* --------------------------------------------------------------------------
+     * 8. UI 事件绑定与实时参数联动 (Interactive Controls Binding)
+     * -------------------------------------------------------------------------- */
+    // 折叠面板切换
+    const controlDeck = document.getElementById('controlDeck');
+    const deckToggleHeader = document.getElementById('deckToggleHeader');
+    deckToggleHeader.addEventListener('click', () => {
+      controlDeck.classList.toggle('minimized');
+    });
+
+    // 绑定参数滑块
+    function bindSlider(id, valId, uniformRef, multiplier = 1) {
+      const input = document.getElementById(id);
+      const valDisplay = document.getElementById(valId);
+      input.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        valDisplay.textContent = v.toFixed(2);
+        if (uniformRef) uniformRef.value = v * multiplier;
+      });
+    }
+
+    bindSlider('input-density', 'val-density', volumetricShader.uniforms.uFogDensity);
+    bindSlider('input-vortex', 'val-vortex', volumetricShader.uniforms.uVortexSpeed);
+    bindSlider('input-godray', 'val-godray', volumetricShader.uniforms.uGodRayIntensity);
+    bindSlider('input-phaseg', 'val-phaseg', volumetricShader.uniforms.uScatteringG);
+    bindSlider('input-particle', 'val-particle', particleMat.uniforms.uSpeed);
+
+    // 视角预设按钮点击
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        if (autoCruise) {
+          autoCruise = false;
+          cruiseBtn.classList.remove('active');
+          cruiseText.textContent = "启动电影漫游巡航";
+        }
+        const view = e.currentTarget.getAttribute('data-view');
+        switchCameraView(view);
+      });
+    });
+
+    // 全屏模式控制
+    const fsBtn = document.getElementById('fsBtn');
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+    fsBtn.addEventListener('click', toggleFullscreen);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+    });
+
+    // 窗口尺寸自适应 (Resize Handler)
+    function onWindowResize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+      sceneRenderTarget.setSize(width, height);
+      volumetricShader.uniforms.uResolution.value.set(width, height);
+      volumetricShader.uniforms.uNear.value = camera.near;
+      volumetricShader.uniforms.uFar.value = camera.far;
+    }
+    window.addEventListener('resize', onWindowResize);
+
+    /* --------------------------------------------------------------------------
+     * 9. 渲染主循环与动画更新 (High-Performance Render Loop)
+     * -------------------------------------------------------------------------- */
+    const clock = new THREE.Clock();
+    let frameCount = 0;
+    let lastTime = performance.now();
+    const hudFps = document.getElementById('hud-fps');
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = Math.min(clock.getDelta(), 0.1);
+      const elapsedTime = clock.getElapsedTime();
+
+      // FPS 性能监视器
+      frameCount++;
+      const now = performance.now();
+      if (now - lastTime >= 1000) {
+        const fps = Math.round((frameCount * 1000) / (now - lastTime));
+        hudFps.textContent = `RAYMARCH 56 STEPS | ${fps} FPS`;
+        frameCount = 0;
+        lastTime = now;
+      }
+
+      // 相机平滑过渡插值 (Smooth View Transition)
+      if (isTransitioning) {
+        transitionProgress += delta * 1.35;
+        const ease = 0.5 - 0.5 * Math.cos(Math.min(transitionProgress, 1.0) * Math.PI);
+        camera.position.lerpVectors(camStartPos, camEndPos, ease);
+        controls.target.lerpVectors(camStartTarget, camEndTarget, ease);
+        if (transitionProgress >= 1.0) isTransitioning = false;
+      }
+
+      // 电影级自动慢速漫游巡航 (Cinematic Breathing Orbit)
+      if (autoCruise) {
+        const cruiseAngle = elapsedTime * 0.15;
+        const radius = 22.0 + Math.sin(elapsedTime * 0.25) * 3.5;
+        camera.position.x = Math.sin(cruiseAngle) * radius;
+        camera.position.z = Math.cos(cruiseAngle) * radius + 2.0;
+        camera.position.y = 5.0 + Math.sin(elapsedTime * 0.3) * 3.0;
+        controls.target.set(0.0, 7.5 + Math.sin(elapsedTime * 0.2) * 1.5, -4.0);
+      }
+
+      controls.update();
+
+      // 更新粒子时间与位置
+      particleMat.uniforms.uTime.value = elapsedTime;
+
+      // 更新体积步进 Shader 矩阵
+      camera.updateMatrixWorld();
+      camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
+      invViewProj.multiplyMatrices(camera.matrixWorld, camera.projectionMatrixInverse);
+
+      volumetricShader.uniforms.uTime.value = elapsedTime;
+      volumetricShader.uniforms.uCameraPos.value.copy(camera.position);
+      volumetricShader.uniforms.uInvViewProj.value.copy(invViewProj);
+
+      // =========================================================================
+      // 双通道渲染管线 (Dual-Pass Render Pipeline):
+      // Pass 1: 将阶梯、门框与粒子渲染至带有深度贴图的 RenderTarget
+      // =========================================================================
+      renderer.setRenderTarget(sceneRenderTarget);
+      renderer.clear();
+      renderer.render(scene, camera);
+
+      // =========================================================================
+      // Pass 2: 绑定颜色与深度纹理，运行体积雾光线步进并输出至屏幕画布
+      // =========================================================================
+      volumetricShader.uniforms.tDiffuse.value = sceneRenderTarget.texture;
+      volumetricShader.uniforms.tDepth.value = sceneRenderTarget.depthTexture;
+
+      renderer.setRenderTarget(null);
+      renderer.render(postScene, postCamera);
+    }
+
+    // 启动渲染管线
+    animate();
+
+  })();
+  </script>
+</body>
+</html>
