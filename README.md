@@ -1,98 +1,119 @@
-# Aster 的个人博客
+# Aster · A personal observatory
 
-一个纯静态的个人博客：没有框架、没有构建工具，双击 `index.html` 就能跑。
-设计走「个人写作站」路线——霞鹜文楷 + 冷调纸白 + 群青蓝，首页是一块会打字的
-终端登录横幅；页面间有转场动画，主题按钮是从点击处圆形扩散换肤的。
+一个关于技术、声音与微小发现的个人博客。深空青瓷配色，Newsreader 与中文宋体/黑体搭配，Three.js 实体材质结合 SVG 与文字动效。内容保存在 `assets/js/data.js`。
 
-## 快速开始
+## 本地预览
 
-- **本地预览**：双击 `index.html`（或用 VS Code 的 Live Server）
-- **修改内容**：只改 **`assets/js/data.js`** 这一个文件
-- **发布上线**：推到 GitHub 开 GitHub Pages，或拖进 Vercel / Netlify
+在项目根目录运行：
 
-## 文件结构
-
-```
-personal/
-├── index.html            首页：登录横幅（MOTD）+ 自我介绍 + 最近文章 + 在折腾的
-├── blog.html             文章列表：分类筛选 + 按年分组
-├── post.html             文章详情（模板页，通过 ?slug=文章标识 打开）
-├── projects.html         折腾清单
-├── about.html            关于我：自述 + 会用的东西 + 这几年 + 联系方式
-├── contact.html          联系：邮箱 / QQ（点击复制）
-└── assets/
-    ├── css/style.css     设计系统（变量、排版、深色模式、响应式）
-    ├── js/data.js        ★ 全站内容都在这里，你只改这个文件
-    ├── js/main.js        渲染与交互（一般不用动）
-    └── images/           头像、项目截图等图片
+```sh
+python3 -m http.server 4173
 ```
 
-## 怎么改内容（都在 `assets/js/data.js`）
+打开 `http://localhost:4173`。页面使用 JavaScript 模块与本地文档请求，需通过 HTTP 服务访问。
 
-| 想改什么 | 改哪里 |
-|---|---|
-| 名字 / 年级 / 邮箱 / QQ / 首页自我介绍 | `profile` |
-| 首页终端横幅的台词 | `motd` |
-| 社交链接（GitHub 已填真实地址；留空自动隐藏） | `socials` |
-| 首页「在折腾的」清单（icon 选图标；link 填了就可点击，没填的点了会掉个 ×） | `now` |
-| 项目清单（icon 选图标；link 填了显示「项目地址」，没填的点击会掉个 ×） | `projects` |
-| 文章 | `posts`（见下） |
-| 关于页的自述、技能、时间线、小声说 | `about` |
-| 页脚小字 | `footerNote` |
+GitHub Pages、Netlify 等静态托管可以直接发布当前目录，无需服务器或线上构建步骤。
 
-图标可选值（在 `assets/js/main.js` 的 ICONS 里定义，可自己加）：
-`sparkle` AI · `server` 服务器 · `gamepad` 游戏 · `audio` 音频 ·
-`palette` AI 绘画 · `robot` 机器人 · `network` 网络 · `cube` Minecraft ·
-`mail` / `qq` / `bilibili` / `github` 联系方式 · `sakura` 樱花
+## 页面与内容
 
-### 写一篇新文章
+| 路径 | 内容 |
+| --- | --- |
+| `index.html` | 私人观测站：首页星仪、近期文章、精选项目和兴趣 |
+| `blog.html` | 文章目录：分类与全文标题/摘要/标签检索 |
+| `post.html?slug=…` | 文章、章节目录、代码复制、相邻文章 |
+| `projects.html` | 软件、基础设施、声音与硬件项目 |
+| `about.html` | 个人介绍、工具箱、时间线和东方兴趣 |
+| `contact.html` | GitHub、邮箱和 QQ |
+| `doc.html` | EchoMatrix 全量架构报告 |
+| `write.html` | Markdown/HTML 写作、预览、草稿与 GitHub 发布 |
+| `gov.html` | 原有政务版，作为另一条世界线保留 |
+| `poem/`、`demo/` | 原有独立诗歌与图形作品 |
 
-打开 `data.js` 的 `posts` 数组，复制一段示例改内容，追加到末尾：
+文章数据、原有链接和独立作品保持兼容。核心页面使用真实 HTML 路径；站内切换复用同一个 3D 场景，并支持浏览器前进/后退。
+
+## 修改内容
+
+编辑 `assets/js/data.js`：
+
+- `profile`：个人资料和介绍。
+- `socials`：社交链接；未配置的链接不显示。
+- `projects`：项目名称、描述、状态、分类与链接。
+- `posts`：文章列表；每篇文章需要唯一的 `slug`。
+- `about`：自述、兴趣、工具箱、时间线和联系说明。
+
+首页精选项目和声音专题在 `assets/observatory/site.js`；24 组原创中英短句在 `assets/observatory/quotes.js`。每次回到首页或点击「换一句」会抽取下一组，整组用完前不重复。文章列表按日期排序，分类和搜索结果自动生成。
+
+新增文章示例：
 
 ```js
 {
-  slug: "my-new-post",        // 英文短横线，全站唯一
+  slug: "my-new-post",
   title: "文章标题",
-  category: "自托管",          // 分类随缘起，筛选器自动生成
-  date: "2026-09-10",
-  readTime: 8,
-  summary: "列表页显示的一句话摘要。",
+  category: "自托管",
+  date: "2026-09-29",
+  readTime: 5,
+  summary: "列表页显示的摘要。",
   tags: ["Docker", "NAS"],
-  body: `
-    <p>正文段落，支持 <b>加粗</b>。</p>
-    <h2>小标题</h2>
-    <ul><li>列表项</li></ul>
-    <pre><code>代码块</code></pre>
-    <blockquote>引用</blockquote>`
+  body: `<p>正文内容。</p><h2>一个小节</h2><p>继续写。</p>`
 }
 ```
 
-保存刷新，列表、筛选、归档、上一篇/下一篇全部自动更新。
-现在 `posts` 里共 7 篇（6 篇方向示例 + 1 篇架构剖析），按需替换。
-正文里还能用这些增强标记：
-- `<mark>重点句</mark>` —— 蓝色荧光划线，随滚动划入
-- `<span class="term" tabindex="0" data-tip="名词解释">术语</span>` —— 虚线名词，悬停/聚焦弹出注释气泡
-- `<div class="facts"><div class="fact"><b>数字</b><span>说明</span></div>…</div>` —— 数据卡
+正文支持常见 HTML、SVG 架构图、代码块、`mark`、带 `data-tip` 的 `.term` 术语解释，以及 `.facts` 数据展示。呈现前经过 DOMPurify 处理，脚本和事件属性不会执行。
 
-### 放图片 / 换头像
+## 设计与动效
 
-图片丢进 `assets/images/`，在文章 `body` 里用
-`<img src="assets/images/xxx.jpg" alt="">` 引用即可。
+- `assets/observatory/observatory.css`：布局、深空配色、中英排字和移动端适配。
+- `assets/observatory/site.js`：页面呈现、路由、搜索、目录及二维 MG 动效。
+- `assets/observatory/scene.js`：三维场景构建入口。
+- `assets/observatory/chapter-scene.js`：材质、摄影棚光照、章节变形和渲染调度。
+- `assets/observatory/sculptures.js`：共用拓扑的倒角薄片，生成轨道、书页、构架、星芒、信号波五种姿态。
+- `assets/observatory/quotes.js`：24 组原创中英文首页短句。
+- `assets/observatory/scene.bundle.js`：供浏览器直接加载的压缩场景包。
+- `assets/observatory/writer.js`：写作与发布逻辑。
+- `assets/observatory/fonts.css`、`fonts/`：本地字体及 Unicode 分片。
+- `assets/observatory/vendor/`：固定版本的本地依赖。
 
-## 设计说明
+Three.js 与 GSAP 协调镜头、材质、轨道和排字。点击五个主栏目时，同一组几何薄片在约 1.65 秒内经过错时展开、空间转向、连续形变和收拢，成为对应栏目的抽象形体。新操作会从当前姿态接续。首页使用无裁切的斜体排字，按实际文字宽度适配不同短句。顶部 `MOTION ON/OFF` 控制动效，并记住用户选择。系统开启“减少动态效果”时默认静止。文章、文档和写作模式使用静止的低亮度背景；离开浏览器标签页时停止渲染。WebGL 不可用时显示二维替代图形，内容与导航仍可使用。
 
-- **字体**：标题 Noto Serif SC 700/900，正文系统黑体，元数据 JetBrains Mono。全部走 jsDelivr 的 @fontsource CDN（国内可达），按 unicode-range 分片加载，离线时回退系统字体
-- **配色**：三套主题一键循环——浅色（纸白 `#F6F6F4` + 群青蓝）/ 深色（墨黑）/ **猛男粉**（樱色纸面 `#FFF1F5` + 玫瑰粉，二次元浓度全开），切换有圆形扩散转场和花瓣爆发，自动记忆
-- **动效**：页面切换淡入转场、主题按钮圆形扩散换肤、首屏直接就位 + 滚动显现、
-  悬停时标题下划线生长、列表项交错入场、MOTD 打字机；
-  全部尊重系统「减弱动态」设置，不支持的浏览器自动降级不闪烁
-- **日式点缀**：全站樱花飘落（canvas 绘制，低调不挡内容）、首页竖排日文
-  「昼は学生、夜はオタク。」、关于页 GitHub 头像与「アスター」樱花色小注、
-  文章 404 页「迷子になっちゃった…」
-- **无障碍**：键盘焦点可见、语义化标签、对比度达标
+静态站点运行时没有外部 CDN 请求（用户主动访问外链、发布文章及原有独立作品除外）。三维材质与环境在代码中生成，无须加载外部模型或贴图。依赖版本和许可见 [DEPENDENCIES.md](assets/observatory/DEPENDENCIES.md)。
 
-## 写文章（write.html）
+修改 `scene.js` 后，用 esbuild 0.25.10 重新生成场景包：
 
-打开 `write.html`，填一个只授权本仓库 **Contents: Read & Write** 的 GitHub fine-grained token（只存在你浏览器本地），
-左边写 Markdown / HTML、右边实时预览，点「发布到 GitHub」会把这篇插进 `assets/js/data.js` 的 `posts` 数组并提交，
-Pages 自动重新部署。没有 token 只能预览和复制片段。首页终端里 `cd write` 也能过去。
+```sh
+esbuild assets/observatory/scene.js --bundle --minify --format=esm --target=es2020 --legal-comments=inline --outfile=assets/observatory/scene.bundle.js
+```
+
+本机开发工具安装在 `/data/aster/work/aster-observatory-tools`，浏览器工具位于 `/data/aster/work/ui-tools`，缓存位于 `/data/aster/cache`。
+
+## 写作与发布
+
+打开 `write.html` 即可写作，草稿自动保存在当前浏览器。可复制文章片段，手动加入 `data.js`。
+
+发布到 GitHub 需要只授权本仓库 **Contents: Read & Write** 的 fine-grained token。Token 仅在主动点击“记住在这台电脑”时持久保存，不写入文章草稿或仓库。发布先读取远程文件和 SHA，检查重复 slug，再创建内容提交；仓库发生冲突时会提示重试。
+
+发布仍写入 `XIAOKU2300/XIAOKU2300.github.io` 的 `main` 分支。应先把本次设计发布到该分支，再使用线上写作入口。
+
+## 验证
+
+`tests/observatory.spec.mjs` 使用 Playwright，覆盖核心路由、搜索筛选、目录、代码复制、未知文章、草稿恢复、HTML 预览隔离、手机布局、历史位置、连续导航、五种形体切换、24 组短句不重复及窄屏斜体完整显示。发布接口全部拦截为模拟响应，不会向 GitHub 写入任何内容。
+
+先启动上述 HTTP 服务，再运行：
+
+```sh
+PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs node tests/observatory.spec.mjs
+PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs node tests/resilience.spec.mjs
+```
+
+若 Playwright 已在当前 Node 环境安装，直接 `node tests/observatory.spec.mjs` 即可。可用 `BASE_URL` 指定预览地址。真实设备上的 GPU 性能与触控手感仍应在目标手机和电脑上体验。
+
+### Reliability checks
+
+`tests/resilience.spec.mjs` adds isolated browser checks for draft persistence, delayed document loads, hash history, keyboard navigation, storage failures, and long writer content. External requests are blocked; publishing scenarios use mocked GitHub responses only. Run both suites before committing UI or routing changes.
+
+- Drafts are flushed when the page is hidden or left, as well as after the typing debounce. Storage failures are visible in the writer instead of silently discarding work.
+- Publishing clears only the saved version that was submitted. Edits made while publishing remain an unpublished draft; tokens are excluded from drafts.
+- Contents links preserve the current article DOM. Back navigation restores a saved position after document content and fonts load, rather than jumping back to an old heading.
+- The mobile menu moves keyboard focus into navigation, makes background content inert, and restores focus on Escape. Its links remain scrollable in short landscape viewports.
+- Writer columns contain long titles and code without widening the page.
+
+Drafts are still local to the current browser, not a backup service. Copy important work before clearing browser storage. A local Git commit does not deploy the blog; deployment still requires an explicit push to the publishing branch.
