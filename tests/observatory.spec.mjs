@@ -85,7 +85,7 @@ try{
   await check('Five sections select distinct geometric sculptures and correct captions',async()=>{
     const captions={home:'首页',blog:'文章',projects:'项目',about:'关于',contact:'联系'};
     for(const chapter of Object.keys(captions)){
-      await nav(chapter);assert.equal(await page.locator('#visual-world').getAttribute('data-chapter'),chapter);assert.match(await page.locator('.sculpture-subtitle').textContent(),new RegExp(captions[chapter]));assert.equal(await page.locator('#visual-world').getAttribute('data-phase'),'settled');
+      await nav(chapter);await page.waitForFunction(expected=>{const host=document.querySelector('#visual-world');return host.dataset.chapter===expected&&host.dataset.phase==='settled';},chapter);assert.equal(await page.locator('#visual-world').getAttribute('data-chapter'),chapter);assert.match(await page.locator('.sculpture-subtitle').textContent(),new RegExp(captions[chapter]));assert.equal(await page.locator('#visual-world').getAttribute('data-phase'),'settled');
     }
   });
   await check('A navigation animates the sculpture and interruptions settle at the latest section',async()=>{
@@ -101,20 +101,20 @@ try{
   });
   await check('Twenty-four bilingual phrases rotate without repetition or clipped italics',async()=>{
     await motion(false);await page.evaluate(()=>sessionStorage.removeItem('aster-quote-deck'));await visit('/');await page.evaluate(()=>document.fonts.ready);
-    const ids=new Set();
+    assert.equal(await page.locator('#quote-next,.quote-next').count(),0);const ids=new Set();
     for(let i=0;i<24;i++){
       const id=await page.locator('.hero-title').getAttribute('data-quote-id');assert.ok(!ids.has(id),'Repeated phrase '+id);ids.add(id);
       assert.ok((await page.locator('.hero-chinese').textContent()).length>5);
       const metrics=await page.locator('.hero-title').evaluate(title=>({width:title.clientWidth,ink:[...title.querySelectorAll('.quote-ink')].map(e=>e.offsetWidth),overflow:[...title.querySelectorAll('.line')].map(e=>getComputedStyle(e).overflowY)}));
       assert.ok(metrics.ink.every(width=>width<=metrics.width+1),'Headline exceeds available width');assert.ok(metrics.overflow.every(x=>x==='visible'),'Headline mask can clip italic glyphs');
-      if(i<23)await page.locator('#quote-next').click();
+      if(i<23){await nav('blog');await nav('home');}
     }
     const before=await page.locator('.hero-title').getAttribute('data-quote-id');await nav('blog');await nav('home');assert.notEqual(await page.locator('.hero-title').getAttribute('data-quote-id'),before);
   });
   await check('Every phrase fits narrow screens and a full chapter sculpture remains visible',async()=>{
     await motion(false);await page.setViewportSize({width:320,height:844});
     for(let i=0;i<24;i++){
-      await page.locator('#quote-next').click();const metrics=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,ink:[...document.querySelectorAll('.quote-ink')].map(e=>e.getBoundingClientRect().right)}));
+      const before=await page.locator('.hero-title').getAttribute('data-quote-id');await page.locator('.brand').click();await page.waitForFunction(id=>document.querySelector('.hero-title')?.dataset.quoteId!==id,before);const metrics=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,ink:[...document.querySelectorAll('.quote-ink')].map(e=>e.getBoundingClientRect().right)}));
       assert.ok(metrics.scroll<=metrics.width,'Phrase causes horizontal overflow');assert.ok(metrics.ink.every(x=>x<=metrics.width-12),'Phrase extends into the edge');
     }
     await page.setViewportSize({width:390,height:844});await page.locator('#menu-toggle').click();await nav('projects');

@@ -73,11 +73,15 @@ GitHub Pages、Netlify 等静态托管可以直接发布当前目录，无需服
 - `assets/observatory/fonts.css`、`fonts/`：本地字体及 Unicode 分片。
 - `assets/observatory/vendor/`：固定版本的本地依赖。
 
-Three.js 与 GSAP 协调镜头、材质、轨道和排字。点击五个主栏目时，同一组几何薄片在约 1.65 秒内经过错时展开、空间转向、连续形变和收拢，成为对应栏目的抽象形体。新操作会从当前姿态接续。首页使用无裁切的斜体排字，按实际文字宽度适配不同短句。顶部 `MOTION ON/OFF` 控制动效，并记住用户选择。系统开启“减少动态效果”时默认静止。文章、文档和写作模式使用静止的低亮度背景；离开浏览器标签页时停止渲染。WebGL 不可用时显示二维替代图形，内容与导航仍可使用。
+Three.js and GSAP coordinate the sculpture, chapter transitions, and typography. The same ten ribbons morph between five chapter shapes over approximately 1.85 seconds; interrupted navigation continues from the current geometry. Once settled, each chapter retains gentle rocking and breathing, with restrained page, petal, or wave movement. The homepage phrase changes automatically on each return, using a non-repeating 24-phrase deck; there is no manual quote button.
+
+The decorative orbit loader stays inside the artwork region, never covering or disabling content. Fonts load separately from critical layout CSS; late font completion refits the current headline. Scene creation yields between geometry batches, prepares only the initial chapter before first render, and warms other shapes later. The canvas fades in after rendering. Failed downloads and unavailable WebGL leave a static fallback; a slow download can still complete after the loader becomes quiet.
+
+Rounded bevels use 168 longitudinal segments and six samples per corner, with separate outward-facing end caps. Broad studio reflections and smoother ceramic/brass materials replace transmission and high-frequency surface noise. Rendering caps pixel density, adapts quality after sustained slow frames, and avoids continuous rendering on reading routes, in hidden tabs, or when the sculpture is offscreen. `MOTION ON/OFF` remembers the explicit preference; system reduced motion defaults to a still scene and disables the loader animation. WebGL context loss returns to the fallback without interrupting navigation.
 
 静态站点运行时没有外部 CDN 请求（用户主动访问外链、发布文章及原有独立作品除外）。三维材质与环境在代码中生成，无须加载外部模型或贴图。依赖版本和许可见 [DEPENDENCIES.md](assets/observatory/DEPENDENCIES.md)。
 
-修改 `scene.js` 后，用 esbuild 0.25.10 重新生成场景包：
+After changing `scene.js`, `chapter-scene.js`, or `sculptures.js`, regenerate the browser bundle with esbuild 0.25.10:
 
 ```sh
 esbuild assets/observatory/scene.js --bundle --minify --format=esm --target=es2020 --legal-comments=inline --outfile=assets/observatory/scene.bundle.js
@@ -102,13 +106,15 @@ esbuild assets/observatory/scene.js --bundle --minify --format=esm --target=es20
 ```sh
 PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs node tests/observatory.spec.mjs
 PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs node tests/resilience.spec.mjs
+PLAYWRIGHT_MODULE=/path/to/playwright/index.mjs node tests/scene-loading.spec.mjs
+node tests/sculptures.spec.mjs
 ```
 
 若 Playwright 已在当前 Node 环境安装，直接 `node tests/observatory.spec.mjs` 即可。可用 `BASE_URL` 指定预览地址。真实设备上的 GPU 性能与触控手感仍应在目标手机和电脑上体验。
 
 ### Reliability checks
 
-`tests/resilience.spec.mjs` adds isolated browser checks for draft persistence, delayed document loads, hash history, keyboard navigation, storage failures, and long writer content. External requests are blocked; publishing scenarios use mocked GitHub responses only. Run both suites before committing UI or routing changes.
+`tests/resilience.spec.mjs` adds isolated browser checks for draft persistence, delayed document loads, hash history, keyboard navigation, storage failures, and long writer content. External requests are blocked; publishing scenarios use mocked GitHub responses only. `tests/scene-loading.spec.mjs` holds back font and scene requests, verifies fallback/recovery, and observes actual WebGL transform uploads and draw calls to check idle motion and suspension. It saves desktop/mobile screenshots in a temporary directory. `tests/sculptures.spec.mjs` checks all fifty meshes for matching topology, finite unit normals, bounded vertices, and outward cap normals. Run all four suites before committing scene, UI, or routing changes.
 
 - Drafts are flushed when the page is hidden or left, as well as after the typing debounce. Storage failures are visible in the writer instead of silently discarding work.
 - Publishing clears only the saved version that was submitted. Edits made while publishing remain an unpublished draft; tokens are excluded from drafts.
