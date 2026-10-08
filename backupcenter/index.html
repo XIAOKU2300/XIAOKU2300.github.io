@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BackupCenter · Aster</title>
+<link rel="canonical" href="https://xiaoku2300.github.io/backupcenter/">
+<style>:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f8f7f4;color:#252b30;font:17px/1.8 system-ui,-apple-system,"Segoe UI",sans-serif}main{max-width:780px;margin:0 auto;padding:44px 24px 64px}nav,footer{font-size:14px;color:#56616c}h1{font-size:36px;line-height:1.2;margin:36px 0 18px}h2{font-size:22px;margin:30px 0 10px}a{color:#15587a;text-underline-offset:3px}p{margin:12px 0}footer{margin-top:40px;padding-top:20px;border-top:1px solid #d9dde0}code{font-size:.92em}</style>
+</head>
+<body><main>
+<nav><a href="https://xiaoku2300.github.io/">Aster 博客</a> · <a href="https://xiaoku2300.github.io/backupcenter/">BackupCenter</a></nav>
+<h1>BackupCenter</h1>
+<p>BackupCenter 是 Aster 个人使用的加密备份工具，用于将选定的个人数据备份到本人授权的 Google Drive，并在需要时恢复文件。应用仅供所有者自用。</p>
+<h2>备份如何工作</h2>
+<p>Backrest 负责管理备份任务，Restic 在上传前加密备份内容，并支持压缩和增量去重，Rclone 负责与 Google Drive 连接。Google Drive 保存加密后的备份仓库。</p>
+<p>Google Drive 授权采用 <code>drive.file</code> 权限，用于访问本应用创建或用户明确授权给本应用的文件。授权凭据和解密凭据保存在所有者控制的设备上。</p>
+<h2>相关项目：QYBot / TRSS-Yunzai</h2>
+<p>QYBot / 青弋 Bot 使用 TRSS-Yunzai 作为机器人业务框架之一。BackupCenter 计划为这套业务提供数据保护；QYBot 的目录清单和数据库一致性备份方式仍待确认，自动备份将在备份与恢复测试通过后启用。</p>
+<p>项目背景见<a href="https://xiaoku2300.github.io/post.html?slug=echomatrix-history">青弋 Bot 与 EchoMatrix 全景发展史</a>。</p>
+<h2>隐私与联系</h2>
+<p>有关数据处理方式，请阅读<a href="https://xiaoku2300.github.io/backupcenter/privacy.html">BackupCenter 隐私政策</a>。有关本应用的问题，可通过博客的<a href="https://xiaoku2300.github.io/contact.html">联系页面</a>联系作者。</p>
+<footer>站点所有者：Aster · <a href="https://xiaoku2300.github.io/contact.html">联系作者</a> · <a href="https://xiaoku2300.github.io/backupcenter/privacy.html">BackupCenter 隐私政策</a></footer>
+</main></body>
+</html>

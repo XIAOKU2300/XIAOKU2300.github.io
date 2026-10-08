@@ -247,6 +247,7 @@ const SITE = {
 </code></pre>
 <p>2026 年初，我下定决心彻底解决硬件不稳定的问题。我省吃俭用，购置了一台配备 11 代 Intel Core i7 处理器、16GB 内存的高性能工控迷你主机。我把它的主机名命名为 <code>qybot</code>，接入家中的光纤网络，分配了静态内网 IP <code>192.168.0.102</code>。</p>
 <p>我在这台机器上跑了精简的 Linux 系统，使用 systemd 管理所有服务进程，配置了 Redis 内存持久化、PostgreSQL 关系数据库，搭建了 TRSS-Yunzai 和 Gscore (GSUID Core) 双核心底座。</p>
+<p><strong>备份接入记录（2026 年 10 月 8 日）：</strong>QYBot / 青弋 Bot 的 TRSS-Yunzai 业务数据计划接入 <a href="https://xiaoku2300.github.io/backupcenter/">BackupCenter 加密备份中心</a>。目前处于接入规划阶段，确认备份目录和数据库一致性方案，并完成备份与恢复测试后，再启用自动任务。</p>
 <p>这台小主机，成了我最坚固的堡垒。然而，软件系统的隐疾，却在悄无声息地酝酿。</p>
 <hr>
 <h2>【第三章·冰山之下（2026.01 ～ 2026.05）：走向正规化与黑盒依赖的技术隐患】</h2>
