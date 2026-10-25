@@ -65,8 +65,10 @@ GitHub Pages、Netlify 等静态托管可以直接发布当前目录，无需服
 - `assets/observatory/observatory.css`：布局、深空配色、中英排字和移动端适配。
 - `assets/observatory/site.js`：页面呈现、路由、搜索、目录及二维 MG 动效。
 - `assets/observatory/scene.js`：三维场景构建入口。
-- `assets/observatory/chapter-scene.js`：材质、摄影棚光照、章节变形和渲染调度。
+- `assets/observatory/chapter-scene.js`：材质、摄影棚光照、章节变形、指针交互和渲染调度。
 - `assets/observatory/sculptures.js`：共用拓扑的倒角薄片，生成轨道、书页、构架、星芒、信号波五种姿态。
+- `assets/observatory/cosmos.js`：深空星野、星云，以及五圈持续运转的巨大装置环、刻度与卫星，并有约 40 秒一次的加速事件。
+- `assets/observatory/overlay.js`：覆盖整页的仪表层——细网格、边缘标尺、角标、瞄准环、遥测灯、雷达扇面、横扫光带，以及可连续叠加的光圈脉冲。
 - `assets/observatory/quotes.js`：24 组原创中英文首页短句。
 - `assets/observatory/scene.bundle.js`：供浏览器直接加载的压缩场景包。
 - `assets/observatory/writer.js`：写作与发布逻辑。
@@ -75,13 +77,21 @@ GitHub Pages、Netlify 等静态托管可以直接发布当前目录，无需服
 
 Three.js and GSAP coordinate the sculpture, chapter transitions, and typography. The same ten ribbons morph between five chapter shapes over approximately 1.85 seconds; interrupted navigation continues from the current geometry. Once settled, each chapter retains gentle rocking and breathing, with restrained page, petal, or wave movement. The homepage phrase changes automatically on each return, using a non-repeating 24-phrase deck; there is no manual quote button.
 
-The decorative orbit loader stays inside the artwork region, never covering or disabling content. Fonts load separately from critical layout CSS; late font completion refits the current headline. Scene creation yields between geometry batches, prepares only the initial chapter before first render, and warms other shapes later. The canvas fades in after rendering. Failed downloads and unavailable WebGL leave a static fallback; a slow download can still complete after the loader becomes quiet.
+The decorative orbit loader stays inside the artwork region, never covering or disabling content; the later full-page transition lives in the same non-interactive background layer, so it darkens only the background and never the text. Fonts load separately from critical layout CSS; late font completion refits the current headline. Scene creation yields between geometry batches, prepares only the initial chapter before first render, and warms other shapes later. The canvas fades in after rendering. Failed downloads and unavailable WebGL leave a static fallback; a slow download can still complete after the loader becomes quiet.
 
-Rounded bevels use 168 longitudinal segments and six samples per corner, with separate outward-facing end caps. Broad studio reflections and smoother ceramic/brass materials replace transmission and high-frequency surface noise. Rendering caps pixel density, adapts quality after sustained slow frames, and avoids continuous rendering on reading routes, in hidden tabs, or when the sculpture is offscreen. `MOTION ON/OFF` remembers the explicit preference; system reduced motion defaults to a still scene and disables the loader animation. WebGL context loss returns to the fallback without interrupting navigation.
+Rounded bevels use 168 longitudinal segments and six samples per corner, with separate outward-facing end caps. Broad studio reflections and smoother ceramic/brass materials replace transmission and high-frequency surface noise. Rendering caps pixel density, steps quality down after sustained slow frames (fine grid and reticles first, then pixel density, then the apparatus drift), and avoids continuous rendering on reading routes, in hidden tabs, or when the sculpture is offscreen. `MOTION ON/OFF` remembers the explicit preference; system reduced motion defaults to a still scene and disables the loader animation. WebGL context loss returns to the fallback without interrupting navigation.
+
+The background is a place rather than a backdrop. A deterministic deep field is arranged as a galaxy with a warmer galactic band, three soft additive nebulae sit behind the sculpture, and five enormous rings turn on their own slow periods at radii far larger than the viewport, so only an arc is ever in frame; graduated ticks mark two of them and travelling nodes run the outer two forever. Every forty seconds the whole apparatus runs hot — the rings spin up and the field brightens — then settles. Everything shares the sculpture's clock and easing, so the machine reads as one instrument rather than layered effects.
+
+A second pass covers the entire viewport in the same canvas: a fine drifting grid with major divisions, graduated rulers along all four edges, corner brackets, targeting reticles, a telemetry row, a radar fan, a band of light that crosses the page once per cycle and drags a brightening of the deep field with it, and aperture rings that open outwards from the sculpture. The pass thins out inside the text column so the copy stays legible, each chapter tints it slightly, and the aperture is a four-slot buffer: a new pulse overlaps one still opening instead of snapping it back to the centre.
+
+The loading transition is performed by the sculpture itself. A dark veil sits in its own layer above the page and below the header, so it genuinely covers the content; it opens from a single point at the instrument's centre, widens to exactly the model's settled silhouette as the ribbons finish forming, and keeps opening until it has swallowed the page. The silhouette is taken from every vertex of every ribbon's surface, projected through the same camera as the HUD, closed into a smooth spline and feathered, so the hole matches the shape on screen with a soft edge. Reduced motion, reading routes and a paused scene skip it entirely.
+
+The sculpture is directly grabbable on two axes: dragging turns it about the camera's own up and right axes with inertia on both, the wheel and a two-finger pinch zoom it, and a press that never became a drag answers with a full-page aperture pulse. When a visitor leaves a turned model behind — by scrolling away from the top of the homepage or by changing page — the pose and the zoom ease back to neutral and a wave marks the return. Idle behaviour differs per chapter: the armillary drifts, the pages breathe, the lattice keeps orbiting atoms of its own, and exposure, polish, reflectivity and light temperature drift by a few percent, so sections read as one machine changing mode. Solid ribbon materials are pushed back a fraction of a depth unit and engraving lines never write depth, so drawn lines no longer tear or flicker against the surfaces they belong to; the reticle, apparatus rings and nebulae follow the same rule.
 
 静态站点运行时没有外部 CDN 请求（用户主动访问外链、发布文章及原有独立作品除外）。三维材质与环境在代码中生成，无须加载外部模型或贴图。依赖版本和许可见 [DEPENDENCIES.md](assets/observatory/DEPENDENCIES.md)。
 
-After changing `scene.js`, `chapter-scene.js`, or `sculptures.js`, regenerate the browser bundle with esbuild 0.25.10:
+After changing `scene.js`, `chapter-scene.js`, `sculptures.js`, `cosmos.js`, or `overlay.js`, regenerate the browser bundle with esbuild 0.25.10:
 
 ```sh
 esbuild assets/observatory/scene.js --bundle --minify --format=esm --target=es2020 --legal-comments=inline --outfile=assets/observatory/scene.bundle.js

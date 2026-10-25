@@ -1,11 +1,13 @@
 import * as THREE from './vendor/three.module.js';
 
+// Each chapter is an astronomical instrument, not a generic solid. The same
+// ten ribbons always keep the same topology so every transition stays continuous.
 export const CHAPTERS = Object.freeze({
-  home: { number: '00', name: 'The orbit', label: '首页 · 万象', rotation: [.57, -.40, -.30] },
-  blog: { number: '01', name: 'Unfolding stories', label: '文章 · 篇章', rotation: [.24, -.46, -.13] },
-  projects: { number: '02', name: 'Thought into form', label: '项目 · 构筑', rotation: [.42, -.57, -.16] },
-  about: { number: '03', name: 'A star of my own', label: '关于 · 星芒', rotation: [.40, -.28, .08] },
-  contact: { number: '04', name: 'Across the distance', label: '联系 · 回响', rotation: [.18, -.30, -.12] },
+  home: { number: '00', name: 'The armillary', label: '首页 · 浑天', rotation: [.57, -.40, -.30] },
+  blog: { number: '01', name: 'The ledger', label: '文章 · 篇章', rotation: [.24, -.46, -.13] },
+  projects: { number: '02', name: 'The lattice', label: '项目 · 构筑', rotation: [.42, -.57, -.16] },
+  about: { number: '03', name: 'The compass rose', label: '关于 · 星芒', rotation: [.40, -.28, .08] },
+  contact: { number: '04', name: 'The signal', label: '联系 · 回响', rotation: [.18, -.30, -.12] },
 });
 export const chapterFor = page => CHAPTERS[page] ? page : 'blog';
 export const PIECES = 10;
@@ -17,6 +19,15 @@ const TAU = Math.PI * 2;
 const normalize = v => { const length = Math.hypot(...v) || 1; return v.map(x => x / length); };
 const cross = (a,b) => [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
 const gold = i => i === 1 || i === 8;
+
+// Three armillary bands, each tilted and spun differently so the home chapter
+// reads as an orrery: nested rings crossed around a polar axis.
+const BANDS = [
+  { tilt: 1.04, spin: .28, radius: .94, phase: 0 },
+  { tilt: -.12, spin: 1.06, radius: 1.50, phase: .72 },
+  { tilt: -.82, spin: 1.74, radius: 2.02, phase: 1.90 },
+];
+const bandAxis = band => normalize([Math.cos(band.tilt)*Math.sin(band.spin), -Math.sin(band.tilt), Math.cos(band.tilt)*Math.cos(band.spin)]);
 
 function roundedSquare(t) {
   const extent=1.43,radius=.38,straight=2*(extent-radius),arc=Math.PI*radius/2;
@@ -30,9 +41,13 @@ function roundedSquare(t) {
 
 function centre(chapter,i,t) {
   if (chapter === 'home') {
-    const angle=-.20+i*.042+t*(4.94-Math.abs(i-4.5)*.014);
-    const radius=.91+i*.149+Math.sin(t*Math.PI)*.018;
-    return [Math.cos(angle)*radius,Math.sin(angle)*radius*.96,(i-4.5)*.069+Math.sin(angle*1.2+i*.10)*.17];
+    // The polar axis runs through the middle of the crossed bands.
+    if (i === 9) return [0, -1.95 + t * 3.9, 0];
+    const band = BANDS[Math.floor(i / 3)], k = i % 3;
+    const a = t * TAU * .985 + band.phase + k * .012, r = band.radius + k * .05;
+    const x0 = Math.cos(a) * r, y0 = Math.sin(a) * r;
+    const y1 = y0 * Math.cos(band.tilt), z1 = y0 * Math.sin(band.tilt);
+    return [x0 * Math.cos(band.spin) + z1 * Math.sin(band.spin), y1, -x0 * Math.sin(band.spin) + z1 * Math.cos(band.spin)];
   }
   if (chapter === 'blog') {
     const side=i<5?-1:1,layer=i%5;
@@ -55,7 +70,13 @@ function centre(chapter,i,t) {
 
 function section(chapter,i,t,tangent) {
   let guide=[0,0,1],width=.10,thickness=.045,twist=0;
-  if(chapter==='home'){width=gold(i)?.031:.105+Math.sin(t*Math.PI)*.023;thickness=gold(i)?.034:.052;twist=Math.sin(t*TAU+i*.20)*.24+(i-4.5)*.024;}
+  if(chapter==='home'){
+    if(i===9){width=.030;thickness=.030;guide=[1,0,0];}
+    else{
+      const band=BANDS[Math.floor(i/3)];
+      width=gold(i)?.040:.140;thickness=.050;guide=bandAxis(band);
+    }
+  }
   if(chapter==='blog'){width=gold(i)?.031:1.08+Math.sin(t*Math.PI)*.13;thickness=gold(i)?.025:.030;guide=[i<5?.48:-.48,0,1];twist=(t-.5)*.075;}
   if(chapter==='projects'){width=gold(i)?.044:.084;thickness=.058;guide=i===9?[0,0,1]:i%3===0?[0,0,1]:i%3===1?[1,0,0]:[0,1,0];}
   if(chapter==='about'){width=gold(i)?(.032+Math.sin(t*Math.PI)*.040):(.033+Math.pow(Math.sin(t*Math.PI),.9)*.34);thickness=.040;twist=.30+t*.61;}
@@ -127,4 +148,23 @@ export function createEngraving(geometry,i) {
   }
   lines.setIndex(edges);lines.boundingSphere=new THREE.Sphere(new THREE.Vector3(),5);
   return lines;
+}
+
+// The schematic: each ribbon's centreline. The loading sequence traces these as
+// dashed instrument guides before the solid ribbons settle onto them, so the
+// loader and the sculpture share one geometry instead of two unrelated systems.
+export function createCentrelines(chapter,samples=120) {
+  const out=[];
+  for(let i=0;i<PIECES;i++){
+    const points=[];
+    for(let s=0;s<=samples;s++){const c=centre(chapter,i,s/samples);points.push(new THREE.Vector3(c[0],c[1],c[2]));}
+    out.push(points);
+  }
+  return out;
+}
+
+// A single sampled point on a ribbon's centreline, used as a HUD anchor so the
+// callouts always track the sculpture as it morphs and idles.
+export function anchorPoint(chapter,i,t=.5) {
+  return new THREE.Vector3(...centre(chapter,i,t));
 }

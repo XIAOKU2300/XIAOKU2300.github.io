@@ -7,6 +7,22 @@
   const arrow = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14"/></svg>';
   const backArrow = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>';
   const allPosts = [...SITE.posts].sort((a,b) => b.date.localeCompare(a.date));
+  // The instrument readout names what each chapter actually contains, so the
+  // overlay reports real data instead of being pure decoration.
+  function hudLinesFor(page){
+    const pad = n => String(n).padStart(2,'0');
+    const latest = allPosts[0]?.date;
+    return {
+      home: ['OBJECTS '+pad(10),'RINGS 03','SIGNAL NOMINAL'],
+      blog: ['NOTES '+pad(allPosts.length),'LATEST '+(latest?latest.slice(5).replace('-','.'):'--'),'SIGNAL NOMINAL'],
+      projects: ['PROJECTS '+pad(SITE.projects.length),'ACTIVE','SIGNAL NOMINAL'],
+      about: ['WAYPOINTS '+pad(SITE.about.timeline.length),'SINCE 2020','SIGNAL NOMINAL'],
+      contact: ['CHANNELS '+pad(SITE.socials.length),'AWAITING REPLY','SIGNAL NOMINAL'],
+      post: ['FIELD NOTE','ARCHIVE','SIGNAL NOMINAL'],
+      doc: ['ARCHITECTURE','FULL READ','SIGNAL NOMINAL'],
+      write: ['DRAFT','UNPUBLISHED','SIGNAL NOMINAL'],
+    }[page] || ['SIGNAL NOMINAL'];
+  }
   const main = $('#main');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const readStore = key => { try{return localStorage.getItem(key);}catch{return null;} };
@@ -128,7 +144,7 @@
   function animatePage(){
     if(motionPaused)return;
     animationContext=gsap.context(()=>{
-      gsap.from('.intro-motion',{y:18,opacity:0,duration:.8,stagger:.075,ease:'power3.out',clearProps:'transform,opacity'});
+      gsap.from('.intro-motion',{y:22,opacity:0,filter:'blur(5px)',duration:.85,stagger:.07,ease:'power3.out',clearProps:'transform,opacity,filter'});
       if(currentPage==='home'){
         gsap.from('.hero-title .word',{y:30,opacity:0,filter:'blur(8px)',rotationX:-10,transformPerspective:900,duration:1.15,stagger:.13,delay:.12,ease:'power3.out',clearProps:'transform,opacity,filter'});
         gsap.from('.hero-graphic',{opacity:0,scale:.94,duration:1.6,ease:'power2.out'});
@@ -178,7 +194,7 @@
     document.title=titles[currentPage]||'Aster';setDescription(SITE.profile.intro);
     let pending;
     if(currentPage==='home')renderHome();else if(currentPage==='blog')renderBlog();else if(currentPage==='projects')renderProjects();else if(currentPage==='about')renderAbout();else if(currentPage==='contact')renderContact();else if(currentPage==='post')renderPost();else if(currentPage==='doc')pending=renderDocument(id);else if(currentPage==='write')pending=renderWriter(id);
-    if(currentPage==='home'){fitHeadline();document.fonts?.ready.then(fitHeadline);}scene?.setPage(currentPage);closeMenu();if(scrollTop)window.scrollTo({top:0,behavior:'instant'});animatePage();onScroll();
+    if(currentPage==='home'){fitHeadline();document.fonts?.ready.then(fitHeadline);}scene?.setPage(currentPage);scene?.setHud?.(hudLinesFor(currentPage));closeMenu();if(scrollTop)window.scrollTo({top:0,behavior:'instant'});animatePage();onScroll();
     main.setAttribute('tabindex','-1');if(focus)main.focus({preventScroll:true});
     if(!pending&&Number.isFinite(restoreY))window.scrollTo({top:restoreY,behavior:'instant'});
     // Restore only after asynchronous content and fonts establish the document height.
@@ -201,14 +217,38 @@
     const restoreY=pop?history.state?.scrollY:undefined;
     if(!pop)savePosition();
     gsap.killTweensOf(main);gsap.killTweensOf('.transition-rule');
-    if(!motionPaused){gsap.to('.transition-rule',{opacity:.5,scaleY:1,duration:.25,ease:'power2.out'});await new Promise(resolve=>gsap.to(main,{opacity:0,y:-7,duration:.18,ease:'power1.in',onComplete:resolve,onInterrupt:resolve}));}
+    // The exit is one composed move: the instrument frame contracts and its
+    // rails close in, the sweep rule crosses the page, and the old page blurs
+    // up out of the way. The GL sweep and aperture were already fired above by
+    // the scene's own setPage, so both halves leave on the same beat.
+    const chrome='.hud-frame,.hud-rail-left,.hud-rail-right,.hud-numeral';
+    const hud=!!$('.hud-frame');
+    if(!motionPaused){
+      await new Promise(resolve=>{
+        const exit=gsap.timeline({onComplete:resolve,onInterrupt:resolve});
+        if(hud)exit.to('.hud-frame',{scale:.955,opacity:.35,duration:.36,ease:'power2.in'},0)
+          .to('.hud-rail-left',{x:26,duration:.36,ease:'power2.in'},0)
+          .to('.hud-rail-right',{x:-26,duration:.36,ease:'power2.in'},0)
+          .to('.hud-numeral',{opacity:.3,duration:.36,ease:'power2.in'},0);
+        exit.to('.transition-rule',{opacity:.85,scaleX:1,duration:.34,ease:'power2.out'},0)
+          .to(main,{opacity:0,y:-18,filter:'blur(7px)',duration:.36,ease:'power2.in'},.05);
+      });
+    }
     if(ticket!==navigationId)return;
     if(!pop)history.pushState({observatory:true,scrollY:0},'',url);
-    gsap.set(main,{clearProps:'transform,opacity'});const ready=render({focus:true,scrollTop:!pop,restoreY});const renderedId=navigationId;
-    if(!motionPaused)gsap.to('.transition-rule',{opacity:0,scaleY:.3,duration:.5,ease:'power2.out'});
+    gsap.set(main,{clearProps:'transform,opacity,filter'});const ready=render({focus:true,scrollTop:!pop,restoreY});const renderedId=navigationId;
+    if(!motionPaused){
+      gsap.to('.transition-rule',{opacity:0,scaleX:.15,duration:.6,ease:'power2.out'});
+      if(hud){
+        gsap.to('.hud-frame',{scale:1,opacity:1,duration:.7,ease:'power3.out',clearProps:'transform,opacity'});
+        gsap.to('.hud-rail-left',{x:0,duration:.7,ease:'power3.out',clearProps:'transform'});
+        gsap.to('.hud-rail-right',{x:0,duration:.7,ease:'power3.out',clearProps:'transform'});
+        gsap.to('.hud-numeral',{opacity:1,duration:.7,ease:'power3.out',clearProps:'opacity'});
+      }
+    }else if(hud)gsap.set(chrome,{clearProps:'transform,opacity'});
     await ready;if(renderedId===navigationId)navigating=false;
   }
-  function onScroll(){if(scrollQueued)return;scrollQueued=true;requestAnimationFrame(()=>{scrollQueued=false;document.documentElement.classList.toggle('scrolled',scrollY>25);document.documentElement.classList.toggle('scrolled-far',scrollY>600);const max=document.documentElement.scrollHeight-innerHeight;const read=currentPage==='post'||currentPage==='doc';$('#reading-progress').style.transform=`scaleX(${read&&max>0?Math.min(scrollY/max,1):0})`;const head=$('.page-head');const fade=currentPage==='home'?Math.max(.06,1-scrollY/(innerHeight*.9)):(read||currentPage==='write')?.045:Math.max(.035,1-scrollY/Math.max(300,(head?.offsetHeight||innerHeight)*.85));const host=$('#visual-world');host.style.opacity=String(fade);const mobile=innerWidth<=760;host.style.setProperty('--loader-x',(mobile?innerWidth*.53:innerWidth*(currentPage==='home'?.755:.79))+'px');host.style.setProperty('--loader-y',(currentPage==='home'?(mobile?Math.min(innerHeight*.67,585):innerHeight*.455):mobile&&head?head.getBoundingClientRect().bottom-175:Math.min(310,innerHeight*.37))+'px');});}
+  function onScroll(){if(scrollQueued)return;scrollQueued=true;requestAnimationFrame(()=>{scrollQueued=false;document.documentElement.classList.toggle('scrolled',scrollY>25);document.documentElement.classList.toggle('scrolled-far',scrollY>600);const max=document.documentElement.scrollHeight-innerHeight;const read=currentPage==='post'||currentPage==='doc';$('#reading-progress').style.transform=`scaleX(${read&&max>0?Math.min(scrollY/max,1):0})`;const head=$('.page-head');const fade=currentPage==='home'?Math.max(.06,1-scrollY/(innerHeight*.9)):(read||currentPage==='write')?.045:Math.max(.035,1-scrollY/Math.max(300,(head?.offsetHeight||innerHeight)*.85));const host=$('#visual-world');host.style.setProperty('--world-fade',(fade*fade*(3-2*fade)).toFixed(3));const mobile=innerWidth<=760;host.style.setProperty('--loader-x',(mobile?innerWidth*.53:innerWidth*(currentPage==='home'?.755:.79))+'px');host.style.setProperty('--loader-y',(currentPage==='home'?(mobile?Math.min(innerHeight*.67,585):innerHeight*.455):mobile&&head?head.getBoundingClientRect().bottom-175:Math.min(310,innerHeight*.37))+'px');});}
   document.addEventListener('click',async e=>{
     const copyButton=e.target.closest('[data-copy]');if(copyButton){toast(await copy(copyButton.dataset.copy)?'已复制，期待你的来信。':'复制失败，请手动复制。');return;}
     const a=e.target.closest('a[href]');if(!a||e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||a.target==='_blank'||a.hasAttribute('download'))return;
@@ -231,7 +271,7 @@
   addEventListener('popstate',()=>navigate(new URL(location.href),true));
   addEventListener('scroll',onScroll,{passive:true});
   addEventListener('resize',()=>{if(innerWidth>760)closeMenu();fitHeadline();onScroll();},{passive:true});
-  addEventListener('pageshow',()=>{gsap.set(main,{clearProps:'transform,opacity'});navigating=false;});
+  addEventListener('pageshow',()=>{gsap.set(main,{clearProps:'transform,opacity,filter'});navigating=false;});
   $('#back-top').addEventListener('click',()=>scrollTo({top:0,behavior:motionPaused?'instant':'smooth'}));
   history.scrollRestoration='manual';footer();render();updateMotion();
   document.fonts?.addEventListener('loadingdone',()=>{fitHeadline();onScroll();});
@@ -240,9 +280,9 @@
     // A slow download may finish later; the decorative fallback never gates content.
     const patience=setTimeout(()=>{host.dataset.loadState='fallback';},12000);
     try{
-      const {createObservatory}=await import('./scene.bundle.js?v=3');
+      const {createObservatory}=await import('./scene.bundle.js?v=9');
       scene=await createObservatory(host,{paused:motionPaused});
-      scene.setPaused(motionPaused);scene.setPage(currentPage);
+      scene.setPaused(motionPaused);scene.setPage(currentPage);scene.setHud?.(hudLinesFor(currentPage));
       host.dataset.loadState=host.dataset.renderer==='webgl'?'ready':'fallback';
     }catch{host.dataset.renderer='fallback';host.dataset.loadState='fallback';}
     finally{clearTimeout(patience);}
