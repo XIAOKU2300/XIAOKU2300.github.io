@@ -141,8 +141,12 @@
     $('#site-footer').innerHTML=`<div class="shell"><div class="footer-main"><div><a class="footer-invitation" href="contact.html">Leave a <em>signal.</em>${arrow}</a><p class="footer-quote">宇宙很大，很高兴在这里遇见你。</p></div><div class="footer-socials"><a href="https://github.com/XIAOKU2300" target="_blank" rel="noopener noreferrer">GITHUB ↗</a><a href="mailto:${esc(SITE.profile.email)}">EMAIL ↗</a><a href="blog.html">FIELD NOTES ↗</a></div></div><div class="footer-bottom"><span>© ${new Date().getFullYear()} ASTER · A PERSONAL OBSERVATORY</span><span class="coordinate">STAY CURIOUS. KEEP WANDERING.</span><span><a href="write.html">写作室</a><a href="gov.html">另一条世界线 ↗</a></span></div></div>`;
   }
   function setDescription(text){$('meta[name="description"]')?.setAttribute('content',text);}
+  let bootWaiting=false;
   function animatePage(){
     if(motionPaused)return;
+    // While the opening sequence is on screen, hold the page's own entrance until it hands over.
+    const boot=window.asterBoot;
+    if(boot&&!boot.done){if(!bootWaiting){bootWaiting=true;boot.revealed.then(()=>{bootWaiting=false;animationContext?.revert();animationContext=null;revealObserver?.disconnect();graphicObserver?.disconnect();animatePage();});}return;}
     animationContext=gsap.context(()=>{
       gsap.from('.intro-motion',{y:22,opacity:0,filter:'blur(5px)',duration:.85,stagger:.07,ease:'power3.out',clearProps:'transform,opacity,filter'});
       if(currentPage==='home'){
@@ -281,11 +285,13 @@
     const patience=setTimeout(()=>{host.dataset.loadState='fallback';},12000);
     try{
       const {createObservatory}=await import('./scene.bundle.js?v=9');
+      // The bundle downloads during the opening; the scene starts (and its veil goes up) only once it has played.
+      if(window.asterBoot)await window.asterBoot.ended;
       scene=await createObservatory(host,{paused:motionPaused});
       scene.setPaused(motionPaused);scene.setPage(currentPage);scene.setHud?.(hudLinesFor(currentPage));
       host.dataset.loadState=host.dataset.renderer==='webgl'?'ready':'fallback';
     }catch{host.dataset.renderer='fallback';host.dataset.loadState='fallback';}
-    finally{clearTimeout(patience);}
+    finally{clearTimeout(patience);window.asterBoot?.handoff();}
   }
   requestAnimationFrame(()=>setTimeout(loadScene,0));
 })();

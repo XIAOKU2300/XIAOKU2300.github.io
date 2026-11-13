@@ -69,6 +69,7 @@ GitHub Pages、Netlify 等静态托管可以直接发布当前目录，无需服
 - `assets/observatory/sculptures.js`：共用拓扑的倒角薄片，生成轨道、书页、构架、星芒、信号波五种姿态。
 - `assets/observatory/cosmos.js`：深空星野、星云，以及五圈持续运转的巨大装置环、刻度与卫星，并有约 40 秒一次的加速事件。
 - `assets/observatory/overlay.js`：覆盖整页的仪表层——细网格、边缘标尺、角标、瞄准环、遥测灯、雷达扇面、横扫光带，以及可连续叠加的光圈脉冲。
+- `assets/observatory/boot.js`、`boot.css`：首页开场序列（约 9.5 秒，六拍：点火、穹顶开缝、四片带棱面的星刃翻滚对接成立体星、陀螺环仪翻转归位并坍缩、带厚度的 ASTER 字标逐笔敲出、镜头穿过字标后溶解；全程无闪烁，立体部分用 2D canvas 自行投影着色，不依赖 WebGL；每个浏览器会话只播一次，点击或任意键跳过；系统减少动态效果或站内关闭动效时不播放）。结束后无缝交给 3D 场景的轮廓遮罩。地址加 `?boot` 可强制重播，`?boot&bootframe=90` 定格在第 90 帧便于调试。
 - `assets/observatory/quotes.js`：24 组原创中英文首页短句。
 - `assets/observatory/scene.bundle.js`：供浏览器直接加载的压缩场景包。
 - `assets/observatory/writer.js`：写作与发布逻辑。

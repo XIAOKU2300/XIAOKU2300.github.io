@@ -1,0 +1,48 @@
+/* Opening sequence ("boot").
+   Plays once per browser session on the home page, then hands the screen to
+   the scene's own loader veil. The overlay's background is the veil's exact
+   gradient, so the hand-off has no visible seam. */
+
+/* Until boot.js has built the overlay, cover the page so nothing flashes. */
+html.booting{overflow:hidden}
+html.booting body::before{content:'';position:fixed;inset:0;z-index:99;background:#020405}
+
+.boot{position:fixed;inset:0;z-index:100;overflow:hidden;cursor:pointer;color:var(--paper);background:radial-gradient(ellipse 74% 74% at 50% 46%,#0d1a22,#070c10);-webkit-user-select:none;user-select:none;contain:strict}
+.boot-stars{position:absolute;inset:0;width:100%;height:100%}
+.boot-content{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform}
+
+/* 1 · ignition */
+.boot-spark{position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 18px 4px rgba(231,231,222,.8),0 0 60px 14px rgba(168,199,190,.35);opacity:0}
+.boot-ignite{position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:linear-gradient(90deg,transparent,var(--paper) 12%,#fff 50%,var(--paper) 88%,transparent);box-shadow:0 0 16px rgba(168,199,190,.7);transform:scaleX(0);opacity:0}
+
+/* 2 · aperture: two shutters that part like a dome slit */
+.boot-shutter{position:absolute;left:0;right:0;height:50%;background:#020405;will-change:transform}
+.boot-shutter-top{top:0}
+.boot-shutter-bottom{bottom:0}
+.boot-shutter::after{content:'';position:absolute;left:0;right:0;height:1px;background:var(--paper);box-shadow:0 0 22px 2px rgba(168,199,190,.75);opacity:var(--edge,0)}
+.boot-shutter-top::after{bottom:0}
+.boot-shutter-bottom::after{top:0}
+
+/* 3–4 · the solid star and its gyroscope are drawn on a canvas */
+.boot-solid{position:absolute;inset:0;width:100%;height:100%}
+.boot-spike{position:absolute;display:block;opacity:0}
+.boot-spike-x{left:0;right:0;top:50%;height:1px;background:linear-gradient(90deg,transparent,var(--paper) 30%,var(--paper) 70%,transparent);transform:scaleX(0)}
+.boot-spike-y{top:0;bottom:0;left:50%;width:1px;background:linear-gradient(180deg,transparent,var(--paper) 30%,var(--paper) 70%,transparent);transform:scaleY(0)}
+.boot-shock{position:absolute;left:50%;top:50%;width:0;height:0;transform:translate(-50%,-50%);border:2px solid var(--paper);border-radius:50%;opacity:0;pointer-events:none}
+
+/* 5 · the name: a slab with real thickness, seen in perspective */
+.boot-title{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);perspective:1500px;visibility:hidden;pointer-events:none}
+.boot-plate{display:flex;flex-direction:column;align-items:center;transform-style:preserve-3d;will-change:transform}
+.boot-word{position:relative;width:min(72vw,880px);aspect-ratio:445/100;transform-style:preserve-3d;--slice:clamp(3px,.42vw,6px)}
+.boot-wordmark{position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible;transform:translateZ(calc(var(--layer) * var(--slice) * -1))}
+.boot-bar{margin-top:clamp(20px,3.4vw,46px);padding:.16em .62em .2em;background:var(--paper);color:#0a141a;font:italic 400 clamp(21px,3.5vw,50px)/1.1 var(--serif);letter-spacing:-.01em;white-space:nowrap;clip-path:inset(0 100% 0 0)}
+.boot-zh{margin-top:clamp(18px,2.2vw,30px);padding-left:.5em;font:400 clamp(14px,1.5vw,20px)/1.6 var(--cn);letter-spacing:.9em;color:var(--celadon);white-space:nowrap;opacity:0}
+
+.boot-skip{position:absolute;right:40px;bottom:34px;font:11px/1 var(--mono);letter-spacing:.3em;color:var(--paper);opacity:0}
+.boot-skip b{font-weight:400;letter-spacing:0}
+
+@media(max-width:760px){
+  .boot-word{width:80vw}
+  .boot-skip{right:22px;bottom:24px}
+}
+@media(prefers-reduced-motion:reduce){.boot{display:none}html.booting body::before{display:none}html.booting{overflow:auto}}
